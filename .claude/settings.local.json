@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install)",
+      "PowerShell(npm install gsap lenis)",
+      "PowerShell(npm run build)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:65274/)",
+      "Bash(curl -s http://localhost:65274/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:61811/)",
+      "Bash(grep -iE '\\\\.\\(png|jpg|jpeg|webp\\)$')",
+      "Bash(python -c \"import PIL; print\\('PIL', PIL.__version__\\)\")",
+      "Bash(node -e \"console.log\\('node', process.version\\)\")",
+      "Bash(node -e \"require.resolve\\('sharp'\\); console.log\\('sharp ok'\\)\")",
+      "Bash(python -m pip install --quiet Pillow)",
+      "Bash(python -m pip install --quiet numpy)",
+      "Bash(python -c \"import numpy; print\\('numpy', numpy.__version__\\)\")",
+      "Bash(python -c ' *)",
+      "PowerShell(npm run build 2>&1)",
+      "Bash(rm -f src/hooks/useSceneState.ts)",
+      "Bash(ls src/hooks)",
+      "Read(//c/Users/tituk/Videos/Screen Recordings/**)",
+      "Read(//c/Users/tituk/AppData/Local/Microsoft/WinGet/Packages//**)",
+      "Bash(python -c \"import cv2; print\\('cv2 ok'\\)\")",
+      "Read(//c/Program Files/VideoLAN/VLC/**)",
+      "Bash(pip install *)",
+      "Bash(python -c \"import imageio_ffmpeg; print\\(imageio_ffmpeg.get_ffmpeg_exe\\(\\)\\)\")",
+      "Bash(C:/Users/tituk/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe -i 'C:/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-06-27 143451.mp4')",
+      "Bash(C:/Users/tituk/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe -y -i 'C:/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-06-27 143451.mp4' -vf fps=2,scale=640:-1 C:/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/11f24ce2-b6cd-4c92-8b9e-b2950e3af720/scratchpad/v143451_%02d.png)",
+      "Bash(C:/Users/tituk/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe -y -i 'C:/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-06-27 143451.mp4' -vf fps=2,scale=400:-1,tile=4x3 C:/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/11f24ce2-b6cd-4c92-8b9e-b2950e3af720/scratchpad/sheet_143451.png)"
+    ]
+  }
+}
