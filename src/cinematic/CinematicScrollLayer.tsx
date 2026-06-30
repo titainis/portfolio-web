@@ -1,9 +1,13 @@
-import { useEffect, useRef, type ReactNode, type RefObject } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import CameraLayers from './CameraLayers'
+import AboutSection from '../components/AboutSection'
+import VideoLightbox from '../components/VideoLightbox'
+import GenerativeMountainScene from '../components/ui/mountain-scene'
 import { useLenis } from './useLenis'
 import { useScrollProgress } from './useScrollProgress'
+import { useMouseParallax } from './useMouseParallax'
 import {
   buildCameraTimeline,
   buildHorizontalTimeline,
@@ -19,21 +23,27 @@ interface CinematicScrollLayerProps {
 const horizontalPanels = [
   {
     n: '01',
-    title: 'Signals arrive',
-    body: 'Raw, scattered, unread — events stream in from everywhere at once.',
+    title: 'Movie Page',
+    body: 'A sleek movie discovery site for browsing titles, exploring details, and finding something worth watching — built with a clean, content-first interface.',
     panelClass: 'panel-1',
+    url: 'https://titainis.github.io/project-repo/',
+    video: '/work/movie-page-recording.mp4',
   },
   {
     n: '02',
-    title: 'Workflows align',
-    body: 'AI shapes the noise into structure, routing every signal to intent.',
+    title: 'Karate Club Alfa',
+    body: 'A landing page for a karate club — introducing the club, its training programs, and schedule, with a clear path for new members to get in touch.',
     panelClass: 'panel-2',
+    url: 'https://karate-klubas-alfa.lovable.app',
+    video: '/work/karate-club-recording.mp4',
   },
   {
     n: '03',
     title: 'Action lands',
     body: 'The rift closes — meaningful outcomes, delivered on autopilot.',
     panelClass: 'panel-3',
+    url: undefined,
+    video: undefined,
   },
 ]
 
@@ -42,6 +52,11 @@ export default function CinematicScrollLayer({
   paragraphRef,
   children,
 }: CinematicScrollLayerProps) {
+  const [lightbox, setLightbox] = useState<{
+    src: string
+    el: HTMLElement
+  } | null>(null)
+
   // Smooth-scroll engine + single source of truth for scroll progress.
   useLenis()
   const { report } = useScrollProgress()
@@ -54,6 +69,11 @@ export default function CinematicScrollLayer({
   const horizWrapRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
 
+  // Subtle cursor-driven perspective on the fixed camera layers. Writes only
+  // x/y/rotationX/rotationY, so it composes with — never overrides — the
+  // scroll-driven scale/yPercent on the same elements.
+  useMouseParallax(landscapeRef, trainRef)
+
   useEffect(() => {
     const heading = headingRef.current
     const paragraph = paragraphRef.current
@@ -64,7 +84,6 @@ export default function CinematicScrollLayer({
     const spacer = spacerRef.current
     const horizWrap = horizWrapRef.current
     const track = trackRef.current
-
     if (
       !heading ||
       !paragraph ||
@@ -114,31 +133,104 @@ export default function CinematicScrollLayer({
       {/* Transparent scroll driver for phase 1 (fixed layers show through). */}
       <div ref={spacerRef} className="cinematic-phase1-spacer" aria-hidden />
 
-      {/* PHASE 2 — horizontal storytelling (scrollProgress 1 -> 2) */}
+      {/* ABOUT — a separate section that begins only after the zoom-in. Opaque
+          and z-30, so it scrolls up over the fixed cinematic layers + hero. */}
+      <AboutSection />
+
+      {/* PHASE 2 — horizontal WORK section (scrollProgress 1 -> 2). Each panel
+          is one project: title + description on the left, a large video of the
+          live site on the right. Owns #work so the navbar lands here. */}
       <section
+        id="work"
         ref={horizWrapRef}
         className="horizontal-wrapper relative z-30 w-full h-screen overflow-hidden"
       >
-        <div ref={trackRef} className="flex h-screen will-change-transform">
+        {/* Generative animated mountain landscape — scoped to the work section
+            as its living background (replaces the per-panel flat gradients). */}
+        <GenerativeMountainScene />
+
+        {/* Legibility scrim: darkens the scene just enough for the light panel
+            text to stay readable over the bright sky-blue ridges. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-[#0b1220]/75 via-[#0b1220]/35 to-[#0b1220]/85"
+        />
+
+        <div
+          ref={trackRef}
+          className="relative z-[2] flex h-screen will-change-transform"
+        >
           {horizontalPanels.map((panel) => (
             <article
               key={panel.n}
-              className={`panel relative flex h-screen w-screen shrink-0 flex-col items-start justify-center overflow-hidden px-8 sm:px-16 md:px-24 ${panel.panelClass}`}
+              className={`panel relative flex h-screen w-screen shrink-0 items-center justify-center overflow-hidden px-6 sm:px-10 md:px-14 ${panel.panelClass}`}
             >
               <div data-parallax className="panel-parallax" aria-hidden />
-              <span className="relative z-10 text-sm font-medium tracking-[0.35em] text-white/70">
-                {panel.n}
-              </span>
-              <h2 className="relative z-10 mt-4 max-w-3xl text-4xl font-normal leading-[1.05] text-white sm:text-5xl md:text-6xl">
-                {panel.title}
-              </h2>
-              <p className="relative z-10 mt-6 max-w-md text-base leading-relaxed text-white/80 md:text-lg">
-                {panel.body}
-              </p>
+
+              <div
+                className={`relative z-10 grid w-full max-w-7xl grid-cols-1 items-center gap-6 md:gap-10 ${
+                  panel.video ? 'md:grid-cols-[minmax(0,240px)_1fr]' : ''
+                }`}
+              >
+                {/* Left — number + title + description (narrow strip) */}
+                <div>
+                  <span className="text-xs font-medium tracking-[0.35em] text-[#9fc0dd]">
+                    {panel.n}
+                  </span>
+                  <h2 className="mt-3 text-3xl font-normal leading-[1.05] text-[#eaf2fb] sm:text-4xl md:text-5xl">
+                    {panel.title}
+                  </h2>
+                  <p className="mt-4 text-sm leading-relaxed text-[#b9cfe4]">
+                    {panel.body}
+                  </p>
+                  {panel.url && (
+                    <a
+                      href={panel.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-6 inline-flex items-center gap-2 text-sm font-medium tracking-wide text-[#9fc0dd] transition-colors hover:text-white"
+                    >
+                      View live site &nbsp;&rarr;
+                    </a>
+                  )}
+                </div>
+
+                {/* Right — dominant video showcase. A real button so it's
+                    keyboard-focusable and focus can be restored on close. */}
+                {panel.video && (
+                  <button
+                    type="button"
+                    aria-label={`Play ${panel.title} showcase video`}
+                    className="group relative w-full cursor-zoom-in overflow-hidden rounded-2xl bg-black/20 shadow-2xl ring-1 ring-white/10 transition-transform duration-500 ease-out hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    style={{ aspectRatio: '16/9', maxHeight: '72vh' }}
+                    onClick={(e) =>
+                      setLightbox({ src: panel.video!, el: e.currentTarget })
+                    }
+                  >
+                    <video
+                      src={panel.video}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="h-full w-full object-contain"
+                    />
+                  </button>
+                )}
+              </div>
             </article>
           ))}
         </div>
       </section>
+
+      {/* Premium Hero (shared-element) video popup */}
+      {lightbox && (
+        <VideoLightbox
+          src={lightbox.src}
+          originEl={lightbox.el}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </>
   )
 }

@@ -27,8 +27,12 @@ export default function CameraLayers({
   hazeRef,
   trainRef,
 }: CameraLayersProps) {
+  // The wrapper is the ONLY fixed element in this subtree. Its overflow: hidden
+  // creates a genuine clip boundary at the viewport edge. The layer divs are
+  // position: absolute inside it, so overflow clipping actually applies to them
+  // (fixed children escape overflow clipping — absolute children do not).
   return (
-    <>
+    <div className="cinematic-layers-wrapper">
       <div
         ref={landscapeRef}
         className="cinema-landscape"
@@ -46,6 +50,6 @@ export default function CameraLayers({
           TRAIN_IMAGE ? { backgroundImage: `url(${TRAIN_IMAGE})` } : undefined
         }
       />
-    </>
+    </div>
   )
 }

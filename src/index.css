@@ -10,8 +10,11 @@ body,
   /* Cinematic base: never let a white flash appear behind the fixed scene. */
   background-color: #000000;
   font-family:
-    'Neue Haas Grotesk Display Pro 55 Roman',
-    'Neue Haas Grotesk Text Pro',
+    'Futura',
+    'Futura PT',
+    'Jost',
+    'Century Gothic',
+    'Twentieth Century',
     'Helvetica Neue',
     Helvetica,
     Arial,
@@ -32,13 +35,35 @@ html.lenis body {
 }
 
 /* ---------- Cinematic layers (Phase 1) ----------
-   Two independent FIXED layers. They are siblings in the DOM and each owns its
-   own GSAP transform — they are never nested in a shared animated parent. */
+   All three layers live inside .cinematic-layers-wrapper, which is the single
+   fixed element. The children are position: absolute so that the wrapper's
+   overflow: hidden actually clips them — fixed children escape overflow clipping,
+   absolute children do not. The wrapper's clip boundary is the viewport, so no
+   layer translation can ever reveal the black body behind it. */
 
-/* BACK layer — landscape. Fixed full screen, z 0. Only scales/drifts. */
-.cinema-landscape {
+.cinematic-layers-wrapper {
   position: fixed;
   inset: 0;
+  overflow: hidden;
+}
+
+/* BACK layer — landscape, z 0. Absolute inside the fixed wrapper.
+   inset: -4% (NOT a fixed px) because the binding constraint isn't the ±10px
+   mouse translate — it's the rotation tilt, whose perspective foreshortening
+   pulls the receding edge inward by an amount proportional to the element's
+   half-extent. That grows with viewport size, so a fixed-px overscan that looks
+   fine at 1280px leaks black at 1920px+. A percentage margin scales with the
+   viewport in lockstep with the foreshortening. Tuned together with the gentle
+   1.2°/1.0° background tilt (see useMouseParallax) and verified by direct edge
+   measurement at the true worst case (cursor in a corner, both axes engaged):
+   ≥16px of coverage from 1280px through a 3440px ultrawide. background-size:
+   cover fills the oversized box (~8% zoom on the view — the side-window train
+   layer is a SEPARATE node and is not zoomed by this at all). Scale is owned by
+   the scroll timeline; this overscan is pure layout, and the wrapper's
+   overflow: hidden is the hard backstop if any transform ever overshoots. */
+.cinema-landscape {
+  position: absolute;
+  inset: -4%;
   z-index: 0;
   background-size: cover;
   background-position: center;
@@ -63,10 +88,9 @@ html.lenis body {
   will-change: transform;
 }
 
-/* MID layer — atmospheric haze. Fixed, z 5 (between bg and fg). Its opacity is
-   animated during the motion peak for cinematic depth. Independent node. */
+/* MID layer — atmospheric haze, z 5. No movement — inset: 0 is correct. */
 .camera-haze {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 5;
   pointer-events: none;
@@ -84,16 +108,19 @@ html.lenis body {
   will-change: opacity;
 }
 
-/* FRONT layer — train POV. Fixed full screen, z 10. Stays locked in screen
-   space; only fades / scales down / blurs. The landscape shows through the
-   transparent-window PNG. */
+/* FRONT layer — train POV, z 10. Absolute inside the fixed wrapper.
+   inset: -25px is flat-pixel (not %) so the margin is predictable at every
+   viewport size. 25px > the max ±20px X / ±14px Y mouse shift with headroom.
+   The wrapper's overflow: hidden is the hard backstop — even if a transform
+   overshoots, the clip boundary prevents any exposure of the viewport edge.
+   background-position: center 22% keeps the top of the window frame in view on
+   wide/short viewports; the 25px overscan on each side is minimal enough that
+   the side-window panels remain fully visible. */
 .cinema-train {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  inset: -25px;
   z-index: 10;
   background-size: cover;
-  /* Bias the cover-crop toward the top so the top of the window frame stays in
-     view on wide/short viewports (which otherwise crop the window's top edge). */
   background-position: center 22%;
   background-repeat: no-repeat;
   will-change: opacity, filter, transform;
@@ -147,47 +174,30 @@ html.lenis body {
   pointer-events: none;
 }
 
-/* ---------- Horizontal storytelling (Phase 2) ---------- */
+/* ---------- Horizontal storytelling (Phase 2) ----------
+   The work section's background is the generative WebGL mountain scene
+   (GenerativeMountainScene), rendered behind the scrolling track. The dark
+   slate base shows through the scene's transparent sky; the panels themselves
+   are transparent so the single shared scene reads continuously across them. */
 .horizontal-wrapper {
-  background: #0b0f0c;
+  background: #0f172a;
 }
 .panel-parallax {
+  /* Kept as the GSAP [data-parallax] target; no longer paints its own gradient
+     since the shared mountain scene is the background now. */
   position: absolute;
   inset: -10% -16%;
-  background-size: cover;
-  background-position: center;
   will-change: transform;
 }
-.panel-1 {
-  background: linear-gradient(135deg, #16241a 0%, #1f3a28 55%, #2c5638 100%);
-}
-.panel-1 .panel-parallax {
-  background-image: radial-gradient(
-    50% 60% at 30% 30%,
-    rgba(133, 171, 139, 0.35) 0%,
-    rgba(133, 171, 139, 0) 60%
-  );
-}
-.panel-2 {
-  background: linear-gradient(135deg, #10261f 0%, #143b30 50%, #1c5a45 100%);
-}
-.panel-2 .panel-parallax {
-  background-image: radial-gradient(
-    55% 65% at 70% 40%,
-    rgba(120, 200, 170, 0.3) 0%,
-    rgba(120, 200, 170, 0) 62%
-  );
-}
+.panel-1,
+.panel-2,
 .panel-3 {
-  background: linear-gradient(135deg, #1a2b16 0%, #2c4a22 50%, #4f7c4d 100%);
+  background: transparent;
 }
-.panel-3 .panel-parallax {
-  background-image: radial-gradient(
-    60% 70% at 50% 60%,
-    rgba(200, 224, 170, 0.32) 0%,
-    rgba(200, 224, 170, 0) 64%
-  );
-}
+
+/* The video popup (Hero shared-element transition) is fully self-contained in
+   VideoLightbox.tsx: it tweens geometry inline and honours prefers-reduced-motion
+   by disabling its own transitions. */
 
 @media (prefers-reduced-motion: reduce) {
   .cinema-landscape,

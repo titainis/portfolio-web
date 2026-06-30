@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
+import { lenisStore } from './lenisStore'
 
 // Registered once at module load so timelines built in any effect can rely on it.
 gsap.registerPlugin(ScrollTrigger)
@@ -21,6 +22,7 @@ export function useLenis() {
       wheelMultiplier: 1,
     })
     lenisRef.current = lenis
+    lenisStore.set(lenis)
 
     lenis.on('scroll', ScrollTrigger.update)
 
@@ -32,6 +34,7 @@ export function useLenis() {
       gsap.ticker.remove(raf)
       lenis.destroy()
       lenisRef.current = null
+      lenisStore.set(null)
     }
   }, [])
 
