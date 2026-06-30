@@ -12,10 +12,8 @@ export interface CameraRefs {
   haze: HTMLElement
   /** Foreground train layer — independent transform target. */
   train: HTMLElement
-  /** Fixed navbar + hero overlay. */
+  /** Fixed navbar overlay. */
   overlay: HTMLElement
-  heading: HTMLElement
-  paragraph: HTMLElement
 }
 
 /**
@@ -36,11 +34,8 @@ export interface CameraRefs {
  *                0.95, full by 1.0.
  */
 export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter) {
-  const { spacer, landscape, haze, train, overlay, heading, paragraph } = refs
+  const { spacer, landscape, haze, train, overlay } = refs
 
-  // Frame 1 = train + landscape visible immediately; UI hidden. No fades-in.
-  // Both layers share the window center (~50% 42%) as their transform origin so
-  // the camera dollies straight at the window we eventually fly through.
   gsap.set(landscape, { scale: 1, yPercent: 0, transformOrigin: '50% 44%' })
   gsap.set(haze, { autoAlpha: 0 })
   gsap.set(train, {
@@ -51,7 +46,6 @@ export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter)
     transformOrigin: '50% 43%',
   })
   gsap.set(overlay, { autoAlpha: 0, pointerEvents: 'none' })
-  gsap.set([heading, paragraph], { autoAlpha: 0, y: 20 })
 
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
@@ -85,14 +79,9 @@ export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter)
     .to(train, { filter: 'blur(7px)', ease: 'power1.in', duration: 0.25 }, 0.55)
     .to(train, { autoAlpha: 0, ease: 'power2.in', duration: 0.18 }, 0.72)
 
-  // --- HERO UI: scroll-mapped reveal only (0.75 -> 0.95) ---
+  // --- NAV OVERLAY: fade in at the end of the camera move ---
   tl.to(overlay, { autoAlpha: 1, ease: 'power2.out', duration: 0.2 }, 0.75)
     .set(overlay, { pointerEvents: 'auto' }, 0.9)
-    .to(
-      [heading, paragraph],
-      { autoAlpha: 1, y: 0, ease: 'power2.out', duration: 0.22, stagger: 0.05 },
-      0.75,
-    )
 
   return tl
 }

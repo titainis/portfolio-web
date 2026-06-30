@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import CameraLayers from './CameraLayers'
@@ -14,9 +14,6 @@ import {
 } from './scrollTimelines'
 
 interface CinematicScrollLayerProps {
-  headingRef: RefObject<HTMLElement>
-  paragraphRef: RefObject<HTMLElement>
-  /** The untouched LinkFlow landing section (navbar + hero). */
   children: ReactNode
 }
 
@@ -47,11 +44,7 @@ const horizontalPanels = [
   },
 ]
 
-export default function CinematicScrollLayer({
-  headingRef,
-  paragraphRef,
-  children,
-}: CinematicScrollLayerProps) {
+export default function CinematicScrollLayer({ children }: CinematicScrollLayerProps) {
   const [lightbox, setLightbox] = useState<{
     src: string
     el: HTMLElement
@@ -75,8 +68,6 @@ export default function CinematicScrollLayer({
   useMouseParallax(landscapeRef, trainRef)
 
   useEffect(() => {
-    const heading = headingRef.current
-    const paragraph = paragraphRef.current
     const landscape = landscapeRef.current
     const haze = hazeRef.current
     const train = trainRef.current
@@ -84,33 +75,19 @@ export default function CinematicScrollLayer({
     const spacer = spacerRef.current
     const horizWrap = horizWrapRef.current
     const track = trackRef.current
-    if (
-      !heading ||
-      !paragraph ||
-      !landscape ||
-      !haze ||
-      !train ||
-      !overlay ||
-      !spacer ||
-      !horizWrap ||
-      !track
-    ) {
+    if (!landscape || !haze || !train || !overlay || !spacer || !horizWrap || !track) {
       return
     }
 
     const ctx = gsap.context(() => {
-      buildCameraTimeline(
-        { spacer, landscape, haze, train, overlay, heading, paragraph },
-        report,
-      )
+      buildCameraTimeline({ spacer, landscape, haze, train, overlay }, report)
       buildHorizontalTimeline({ wrap: horizWrap, track }, report)
     })
 
-    // Lenis changes document height; ensure triggers measure after layout.
     requestAnimationFrame(() => ScrollTrigger.refresh())
 
     return () => ctx.revert()
-  }, [headingRef, paragraphRef, report])
+  }, [report])
 
   return (
     <>

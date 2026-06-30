@@ -9,16 +9,7 @@ body,
   margin: 0;
   /* Cinematic base: never let a white flash appear behind the fixed scene. */
   background-color: #000000;
-  font-family:
-    'Futura',
-    'Futura PT',
-    'Jost',
-    'Century Gothic',
-    'Twentieth Century',
-    'Helvetica Neue',
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: 'FK Grotesk', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

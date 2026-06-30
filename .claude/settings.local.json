@@ -27,7 +27,29 @@
       "Bash(python -c \"import imageio_ffmpeg; print\\(imageio_ffmpeg.get_ffmpeg_exe\\(\\)\\)\")",
       "Bash(C:/Users/tituk/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe -i 'C:/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-06-27 143451.mp4')",
       "Bash(C:/Users/tituk/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe -y -i 'C:/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-06-27 143451.mp4' -vf fps=2,scale=640:-1 C:/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/11f24ce2-b6cd-4c92-8b9e-b2950e3af720/scratchpad/v143451_%02d.png)",
-      "Bash(C:/Users/tituk/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe -y -i 'C:/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-06-27 143451.mp4' -vf fps=2,scale=400:-1,tile=4x3 C:/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/11f24ce2-b6cd-4c92-8b9e-b2950e3af720/scratchpad/sheet_143451.png)"
+      "Bash(C:/Users/tituk/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe -y -i 'C:/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-06-27 143451.mp4' -vf fps=2,scale=400:-1,tile=4x3 C:/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/11f24ce2-b6cd-4c92-8b9e-b2950e3af720/scratchpad/sheet_143451.png)",
+      "Bash(npx tsc *)",
+      "Bash(Start-Sleep -Milliseconds 1600)",
+      "Bash(npm install *)",
+      "Bash(echo \"EXIT: $?\")",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "Bash(npx vite *)",
+      "Bash(git checkout *)",
+      "Bash(git clean *)",
+      "Bash(npm view *)",
+      "Bash(where ffmpeg *)",
+      "Bash(mkdir -p /c/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/4409595b-147a-4975-90ec-d01cddbd3798/scratchpad/frames)",
+      "Bash(python -)",
+      "Bash(ffmpeg -version)",
+      "Bash(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"C:\\\\Users\\\\tituk\\\\Videos\\\\Screen Recordings\\\\Screen Recording 2026-06-30 140435.mp4\")",
+      "PowerShell($ff = Get-Command ffmpeg -ErrorAction SilentlyContinue; if \\($ff\\) { $ff.Source } else { \"not found in PATH\" }; Get-ChildItem \"C:\\\\Users\\\\tituk\\\\Videos\\\\Screen Recordings\\\\Screen Recording 2026-06-30 140435.mp4\" | Select-Object Length)",
+      "PowerShell($paths = @\\(\"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\\\\Packages\", \"C:\\\\ffmpeg\", \"$env:ProgramFiles\\\\ffmpeg\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Get-ChildItem -Path $p -Recurse -Filter \"ffmpeg.exe\" -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName } }; \"winget check:\"; winget --version 2>$null)",
+      "PowerShell(winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-agreements --silent 2>&1)",
+      "PowerShell($ff = Get-ChildItem -Path \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\\\\Packages\" -Recurse -Filter \"ffmpeg.exe\" -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName; $ff; & $ff -version 2>&1 | Select-Object -First 1)",
+      "PowerShell($ff = \"C:\\\\Users\\\\tituk\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.1.2-full_build\\\\bin\"; $probe = \"$ff\\\\ffprobe.exe\"; & $probe -v error -show_entries format=duration:stream=width,height,r_frame_rate -of default=noprint_wrappers=1 \"C:\\\\Users\\\\tituk\\\\Videos\\\\Screen Recordings\\\\Screen Recording 2026-06-30 140435.mp4\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(gh pr create --title 'feat: redesign hero, About section, and remove curtain transitions' --body ' *)"
     ]
   }
 }
