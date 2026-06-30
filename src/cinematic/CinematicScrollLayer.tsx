@@ -14,7 +14,7 @@ import {
 } from './scrollTimelines'
 
 interface CinematicScrollLayerProps {
-  children: ReactNode
+  children?: ReactNode
 }
 
 const horizontalPanels = [

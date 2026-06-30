@@ -1,9 +1,4 @@
-const stats = [
-  { value: '40+', label: 'Products shipped' },
-  { value: '8 yrs', label: 'Building on the web' },
-  { value: '12', label: 'Industries served' },
-  { value: '100%', label: 'Remote & async' },
-]
+import { RotatingText } from '@/components/ui/rotating-text'
 
 const services = [
   {
@@ -28,6 +23,13 @@ const services = [
   },
 ]
 
+const stats = [
+  { value: '40+', label: 'Products shipped' },
+  { value: '8 yrs', label: 'Building on the web' },
+  { value: '12', label: 'Industries served' },
+  { value: '100%', label: 'Remote & async' },
+]
+
 export default function AboutSection() {
   return (
     <section id="about" className="relative z-30 w-full bg-[#ededed]">
@@ -38,10 +40,20 @@ export default function AboutSection() {
           ABOUT
         </span>
         <h2
-          className="mt-6 max-w-3xl text-4xl font-normal leading-[1.06] text-[#1e3a5f] sm:text-5xl md:text-6xl lg:text-[4rem]"
+          className="mt-6 max-w-4xl text-4xl font-normal leading-[1.06] text-[#1e3a5f] sm:text-5xl md:text-6xl lg:text-[4rem]"
           style={{ letterSpacing: '-0.02em' }}
         >
-          We build digital products that matter.
+          <span>We provide </span>
+          <RotatingText
+            words={[
+              'Website Development',
+              'E-Commerce Solutions',
+              'Web Applications',
+              'AI Solutions',
+            ]}
+            interval={2500}
+            className="font-semibold text-[#6b94bf] align-bottom"
+          />
         </h2>
       </div>
 
@@ -49,7 +61,6 @@ export default function AboutSection() {
 
       {/* ── BODY COPY  +  STATS ───────────────────────────────────────── */}
       <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-20 py-16 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-12 md:gap-20 items-start">
-        {/* Left */}
         <div>
           <p className="text-xl font-light leading-relaxed text-[#2d4a6b] md:text-2xl">
             From scattered signals to fast, considered products people actually enjoy using.
@@ -62,7 +73,6 @@ export default function AboutSection() {
           </p>
         </div>
 
-        {/* Right — stats */}
         <dl className="grid grid-cols-2 gap-x-8 gap-y-10 pt-2">
           {stats.map(stat => (
             <div key={stat.label}>
@@ -86,10 +96,7 @@ export default function AboutSection() {
         </span>
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           {services.map(s => (
-            <div
-              key={s.n}
-              className="border-t border-[#c5d5e5] pt-6 pb-6 pr-8"
-            >
+            <div key={s.n} className="border-t border-[#c5d5e5] pt-6 pb-6 pr-8">
               <span className="text-xs font-medium tracking-[0.3em] text-[#6b94bf]">
                 {s.n}
               </span>
@@ -108,7 +115,6 @@ export default function AboutSection() {
 
       {/* ── QUOTE  +  PROCESS ─────────────────────────────────────────── */}
       <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-20 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        {/* Left — pull quote */}
         <p
           className="text-2xl font-light leading-relaxed text-[#2d4a6b] md:text-3xl"
           style={{ letterSpacing: '-0.01em' }}
@@ -116,7 +122,6 @@ export default function AboutSection() {
           "The difference between good and great is in the details most people never see."
         </p>
 
-        {/* Right — process steps */}
         <div className="space-y-8">
           {[
             { n: '01', label: 'Discovery', desc: 'We listen, ask hard questions, and map out what success actually looks like.' },

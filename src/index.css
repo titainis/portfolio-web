@@ -190,6 +190,15 @@ html.lenis body {
    VideoLightbox.tsx: it tweens geometry inline and honours prefers-reduced-motion
    by disabling its own transitions. */
 
+@keyframes scroll-blink {
+  0%   { opacity: 1; }   /* visible */
+  62%  { opacity: 1; }   /* stay visible for ~1.5 s */
+  72%  { opacity: 0; }   /* quick out (~0.25 s) */
+  82%  { opacity: 0; }   /* brief dark (~0.25 s) */
+  94%  { opacity: 1; }   /* quick back in (~0.3 s) */
+  100% { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cinema-landscape,
   .cinema-train,

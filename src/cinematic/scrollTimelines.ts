@@ -60,7 +60,7 @@ export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter)
   })
 
   // --- BACKGROUND: forward dolly, accelerating + popping out as we fly in ---
-  tl.to(landscape, { scale: 2.4, ease: 'power2.in', duration: 1 }, 0)
+  tl.to(landscape, { scale: 1.9, ease: 'power2.in', duration: 1 }, 0)
 
   // --- MID: atmospheric haze peaks during the crossing, then clears ---
   tl.fromTo(
