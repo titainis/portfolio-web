@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { RotatingText } from '@/components/ui/rotating-text'
 
 const services = [
   {
@@ -36,30 +35,21 @@ export default function AboutSection() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-24 px-6 py-32 sm:px-10 md:gap-40 md:px-20 md:py-64">
 
         {/* ── INTRO ─────────────────────────────────────────────────────── */}
-        <p className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem] [word-spacing:0.5em] text-black md:text-2xl">
-          <span>We provide </span>
-          <RotatingText
-            words={[
-              'Website Development',
-              'E-Commerce Solutions',
-              'Web Applications',
-              'AI Solutions',
-            ]}
-            interval={2500}
-            className="font-semibold text-black align-bottom"
-          />
+        <p className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem]  text-black md:text-2xl">
           <span>
             . We're a small studio with an outsized obsession for the details —
             from the first wireframe to the final deploy. Every project starts
             with listening: your users, your constraints, your ambitions,
             before a single line of code is written.
           </span>
+
+          <span className='block mt-20'>Fighting for authenticity. Making the different.</span>
         </p>
 
         {/* Spacer between the intro description and the "what we build" list */}
-        <div className="my-12 py-16 md:my-20 md:py-24" />
+        <div className="my-8 md:my-12" />
 
-        {/* ── WHAT WE BUILD ─────────────────────────────────────────────── */}
+        {/* ── WHAT WE DO ─────────────────────────────────────────────── */}
         <div className="relative">
 
           <div className="relative z-10 pl-[32vw] pr-[10vw] md:pl-[32vw] md:pr-[12vw]">
