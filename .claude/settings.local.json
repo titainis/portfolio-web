@@ -63,7 +63,15 @@
       "Read(//tmp/**)",
       "Read(//c/tmp/**)",
       "Bash(curl -s -D - -o /dev/null \"https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap\")",
-      "Bash(curl -s \"https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap\")"
+      "Bash(curl -s \"https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap\")",
+      "PowerShell(npx tsc --noEmit)",
+      "Bash(ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate -of default=noprint_wrappers=1 '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232632.mp4')",
+      "Bash(ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate,codec_name -show_entries format=duration -of default=noprint_wrappers=1 '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4')",
+      "Bash(ffmpeg -y -i '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4' -vf 'select='\\\\''eq\\(n\\\\,60\\)+eq\\(n\\\\,300\\)+eq\\(n\\\\,700\\)+eq\\(n\\\\,1100\\)'\\\\''' -vsync 0 /c/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/901ac712-a3e8-4024-84ce-b22d1b8a899f/scratchpad/frames/folidify_%02d.png)",
+      "Bash(ffprobe -v error -show_entries stream=codec_type,codec_name -of default=noprint_wrappers=1 '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4')",
+      "Bash(ffprobe -v error -show_entries format=bit_rate,size -of default=noprint_wrappers=1 '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4')",
+      "Bash(ffmpeg -y -i '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4' -an -c:v copy -movflags +faststart /c/Users/tituk/Documents/Claude_projects/Portfolio-web/public/work/folidify-recording.mp4)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/gsap/package.json'\\).version\\)\")"
     ]
   }
 }

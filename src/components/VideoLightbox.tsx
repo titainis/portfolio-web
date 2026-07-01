@@ -7,24 +7,33 @@ import { lenisStore } from '../cinematic/lenisStore'
  *
  * The clicked thumbnail visually lifts out of the page: a single fixed leaf
  * element starts perfectly aligned over the thumbnail's bounding rect, then
- * tweens its geometry (position, size, border-radius, box-shadow) to a centered
- * floating window occupying ~78% of the viewport. A dark, blurred backdrop
- * fades in behind it; the page stays visible. Closing reverses the exact same
- * tween back into the thumbnail.
+ * tweens into a centered floating window occupying ~78% of the viewport. A
+ * dark, blurred backdrop fades in behind it; the page stays visible. Closing
+ * reverses the exact same tween back into the thumbnail.
  *
- * The expand/collapse is driven imperatively: we commit the start frame, force
- * one synchronous reflow to lock it in as the transition baseline, then write
- * the target styles. This makes the trigger independent of requestAnimationFrame
- * timing (which can be throttled), so the animation always runs.
+ * The container's real box (top/left/width/height) is set ONCE, to the final
+ * open geometry, and never transitions — only `transform` (translate + scale)
+ * animates, which is GPU-composited. Animating top/left/width/height directly
+ * forces a synchronous layout recalculation on every frame; at this element's
+ * size that reads as visible stutter no matter how good the easing curve is.
+ * This is the classic FLIP technique: fake the "grow from the thumbnail" look
+ * by scaling a full-size box down to the thumbnail's rect, then transitioning
+ * that transform back to identity.
  *
- * Because the popup is a position: fixed leaf with no siblings to push around,
- * animating its own geometry reflows nothing else on the page. will-change +
- * a promoted compositing layer keep it on the GPU at 60fps.
+ * The expand/collapse is driven imperatively: we commit the start transform,
+ * force one synchronous reflow to lock it in as the transition baseline, then
+ * write the target transform. This makes the trigger independent of
+ * requestAnimationFrame timing (which can be throttled), so the animation
+ * always runs.
  */
 
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const DURATION = 520 // ms — weighty, not snappy (spec: 450–550ms)
 const CONTROLS_FADE = 150 // ms
+// Same per-frame lerp factor as the fixed nav's cursor-follow "SCROLL" hint
+// (CursorScroll.tsx) — the custom cursor trails the pointer with a soft lag
+// instead of snapping to it 1:1.
+const CURSOR_LAG = 0.03
 
 const OPEN_RADIUS = 24
 const START_RADIUS = 16
@@ -38,13 +47,6 @@ interface Geometry {
   left: number
   width: number
   height: number
-}
-
-interface Frame {
-  geom: Geometry
-  radius: number
-  shadow: string
-  backdrop: number
 }
 
 interface VideoLightboxProps {
@@ -61,9 +63,10 @@ function rectToGeometry(rect: DOMRect): Geometry {
 /**
  * A centered box matching the video's own aspect ratio, fitted within ~78% of
  * the viewport with margins. Sizing to the real ratio means the video fills the
- * popup edge-to-edge — no letterbox bars / "edges" around it.
+ * popup edge-to-edge — no letterbox bars / "edges" around it. This box is the
+ * container's one-time, never-animated real geometry.
  */
-function computeTargetGeometry(aspect: number): Geometry {
+function computeOpenGeometry(aspect: number): Geometry {
   const vw = window.innerWidth
   const vh = window.innerHeight
   const maxW = vw * 0.78
@@ -95,10 +98,18 @@ export default function VideoLightbox({
   ).current
   const duration = prefersReduced ? 0 : DURATION
 
+  const [hasFinePointer] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(pointer: fine)').matches,
+  )
+
   const containerRef = useRef<HTMLDivElement>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const closeBtnRef = useRef<HTMLButtonElement>(null)
+  const cursorRef = useRef<HTMLDivElement>(null)
+  const cursorTarget = useRef({ x: 0, y: 0 })
+  const cursorPos = useRef({ x: 0, y: 0 })
   const timers = useRef<number[]>([])
   const closingRef = useRef(false)
 
@@ -106,33 +117,30 @@ export default function VideoLightbox({
   // the popup is sized to the real ratio from the very first frame (no bars),
   // and refined from the popup's own metadata if the thumbnail wasn't ready.
   const aspectRef = useRef(16 / 9)
+  // The container's fixed, never-animated real box — set once on open. Every
+  // transform below is expressed relative to this rect.
+  const openGeomRef = useRef<Geometry>({ top: 0, left: 0, width: 0, height: 0 })
 
   const [controlsReady, setControlsReady] = useState(false)
 
-  const startFrame = (): Frame => ({
-    geom: rectToGeometry(originEl.getBoundingClientRect()),
-    radius: START_RADIUS,
-    shadow: START_SHADOW,
-    backdrop: 0,
-  })
-  const openFrame = (): Frame => ({
-    geom: computeTargetGeometry(aspectRef.current),
-    radius: OPEN_RADIUS,
-    shadow: OPEN_SHADOW,
-    backdrop: 1,
-  })
-
-  const applyFrame = (frame: Frame) => {
+  const applyTransform = (
+    rect: Geometry,
+    radius: number,
+    shadow: string,
+    backdrop: number,
+  ) => {
     const el = containerRef.current
     const bd = backdropRef.current
     if (!el || !bd) return
-    el.style.top = `${frame.geom.top}px`
-    el.style.left = `${frame.geom.left}px`
-    el.style.width = `${frame.geom.width}px`
-    el.style.height = `${frame.geom.height}px`
-    el.style.borderRadius = `${frame.radius}px`
-    el.style.boxShadow = frame.shadow
-    bd.style.opacity = String(frame.backdrop)
+    const open = openGeomRef.current
+    const scaleX = rect.width / open.width
+    const scaleY = rect.height / open.height
+    const tx = rect.left - open.left
+    const ty = rect.top - open.top
+    el.style.transform = `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`
+    el.style.borderRadius = `${radius}px`
+    el.style.boxShadow = shadow
+    bd.style.opacity = String(backdrop)
   }
 
   const schedule = (fn: () => void, ms: number) => {
@@ -147,15 +155,12 @@ export default function VideoLightbox({
   const transition = prefersReduced
     ? 'none'
     : [
-        `top ${duration}ms ${EASE}`,
-        `left ${duration}ms ${EASE}`,
-        `width ${duration}ms ${EASE}`,
-        `height ${duration}ms ${EASE}`,
+        `transform ${duration}ms ${EASE}`,
         `border-radius ${duration}ms ${EASE}`,
         `box-shadow ${duration}ms ${EASE}`,
       ].join(', ')
 
-  // ---- Open: commit the origin frame, lock it in, then expand to target. ----
+  // ---- Open: commit the origin transform, lock it in, then expand. ----
   useLayoutEffect(() => {
     lenisStore.stop()
     document.body.style.overflow = 'hidden'
@@ -167,16 +172,28 @@ export default function VideoLightbox({
       aspectRef.current = originVideo.videoWidth / originVideo.videoHeight
     }
 
-    // Commit the origin frame with transitions OFF so it can't animate in from
-    // the element's initial corner position.
+    // Fix the container's real box ONCE, to the target geometry. It never
+    // transitions again — everything below animates via `transform` only.
+    const open = computeOpenGeometry(aspectRef.current)
+    openGeomRef.current = open
     const el = containerRef.current
+    if (el) {
+      el.style.top = `${open.top}px`
+      el.style.left = `${open.left}px`
+      el.style.width = `${open.width}px`
+      el.style.height = `${open.height}px`
+    }
+
+    // Commit the origin transform with transitions OFF so it can't animate in
+    // from the identity transform.
+    const originRect = rectToGeometry(originEl.getBoundingClientRect())
     if (el) el.style.transition = 'none'
-    applyFrame(startFrame())
-    // Force a reflow so the start frame is the transition's baseline, then
+    applyTransform(originRect, START_RADIUS, START_SHADOW, 0)
+    // Force a reflow so the start transform is the transition's baseline, then
     // re-enable transitions and write the target — the browser interpolates.
     void el?.offsetWidth
     if (el) el.style.transition = transition
-    applyFrame(openFrame())
+    applyTransform(open, OPEN_RADIUS, OPEN_SHADOW, 1)
 
     // After the expand settles: fade controls in, then begin playback.
     schedule(() => {
@@ -194,7 +211,7 @@ export default function VideoLightbox({
       }, prefersReduced ? 0 : CONTROLS_FADE)
     }, duration + 20)
 
-    closeBtnRef.current?.focus()
+    containerRef.current?.focus()
 
     // Fallback: if the thumbnail metadata wasn't available, re-fit the popup to
     // the true ratio once the popup video reports its dimensions.
@@ -205,10 +222,19 @@ export default function VideoLightbox({
       if (closingRef.current) return
       // Snap to the corrected geometry without animating (the open tween already
       // ran with the thumbnail's ratio — this is a silent correction).
-      if (el) el.style.transition = 'none'
-      applyFrame(openFrame())
-      void el?.offsetWidth
-      if (el) el.style.transition = transition
+      const corrected = computeOpenGeometry(aspectRef.current)
+      openGeomRef.current = corrected
+      const c = containerRef.current
+      if (c) {
+        c.style.transition = 'none'
+        c.style.top = `${corrected.top}px`
+        c.style.left = `${corrected.left}px`
+        c.style.width = `${corrected.width}px`
+        c.style.height = `${corrected.height}px`
+      }
+      applyTransform(corrected, OPEN_RADIUS, OPEN_SHADOW, 1)
+      void c?.offsetWidth
+      if (c) c.style.transition = transition
     }
     video?.addEventListener('loadedmetadata', onMeta)
 
@@ -227,7 +253,18 @@ export default function VideoLightbox({
   // Keep the centered target accurate if the viewport changes while open.
   useEffect(() => {
     const onResize = () => {
-      if (!closingRef.current) applyFrame(openFrame())
+      if (closingRef.current) return
+      const open = computeOpenGeometry(aspectRef.current)
+      openGeomRef.current = open
+      const el = containerRef.current
+      if (el) {
+        el.style.transition = 'none'
+        el.style.top = `${open.top}px`
+        el.style.left = `${open.left}px`
+        el.style.width = `${open.width}px`
+        el.style.height = `${open.height}px`
+      }
+      applyTransform(open, OPEN_RADIUS, OPEN_SHADOW, 1)
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
@@ -241,39 +278,57 @@ export default function VideoLightbox({
     clearTimers()
     videoRef.current?.pause()
     // Reverse the tween back into the (re-measured) thumbnail rect.
-    applyFrame(startFrame())
+    applyTransform(
+      rectToGeometry(originEl.getBoundingClientRect()),
+      START_RADIUS,
+      START_SHADOW,
+      0,
+    )
     schedule(onClose, duration + 20)
   }
 
-  // ---- Keyboard: Escape closes, Tab is trapped within the popup. ----
+  // ---- Cursor-follow close affordance. Replaces a corner button: the video
+  // fills the popup edge-to-edge, so clicking ANYWHERE closes it, and the
+  // custom cursor is the only affordance needed to communicate that. Skipped
+  // on touch devices, where there's no cursor to follow and tapping already
+  // closes via the dialog's own click handler. Trails the pointer with the
+  // same soft per-frame lerp as the nav's cursor-follow "SCROLL" hint, rather
+  // than snapping to it — a hard 1:1 follow reads as jittery next to that. ----
+  useEffect(() => {
+    if (!hasFinePointer || prefersReduced) return
+    cursorTarget.current = { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+    cursorPos.current = { ...cursorTarget.current }
+
+    const onMove = (e: MouseEvent) => {
+      cursorTarget.current.x = e.clientX
+      cursorTarget.current.y = e.clientY
+    }
+
+    let raf: number
+    const tick = () => {
+      cursorPos.current.x += (cursorTarget.current.x - cursorPos.current.x) * CURSOR_LAG
+      cursorPos.current.y += (cursorTarget.current.y - cursorPos.current.y) * CURSOR_LAG
+      const el = cursorRef.current
+      if (el) {
+        el.style.transform = `translate3d(${cursorPos.current.x}px, ${cursorPos.current.y}px, 0) translate(-50%, -50%)`
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+
+    window.addEventListener('mousemove', onMove, { passive: true })
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      cancelAnimationFrame(raf)
+    }
+  }, [hasFinePointer, prefersReduced])
+
+  // ---- Keyboard: Escape closes. ----
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
         beginClose()
-        return
-      }
-      if (e.key !== 'Tab') return
-
-      const root = containerRef.current
-      if (!root) return
-      const focusables = Array.from(
-        root.querySelectorAll<HTMLElement>(
-          'button, [href], video, input, [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((el) => !el.hasAttribute('disabled'))
-      if (focusables.length === 0) return
-
-      const first = focusables[0]
-      const last = focusables[focusables.length - 1]
-      const active = document.activeElement as HTMLElement | null
-
-      if (e.shiftKey && (active === first || !root.contains(active))) {
-        e.preventDefault()
-        last.focus()
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault()
-        first.focus()
       }
     }
     document.addEventListener('keydown', onKey)
@@ -288,7 +343,10 @@ export default function VideoLightbox({
       aria-modal="true"
       aria-label="Video player"
       onClick={beginClose}
+      style={{ cursor: hasFinePointer && !prefersReduced ? 'none' : 'pointer' }}
     >
+      <span className="sr-only">Click anywhere, or press Escape, to close.</span>
+
       {/* Dark, blurred backdrop — page stays visible behind it. */}
       <div
         ref={backdropRef}
@@ -304,22 +362,23 @@ export default function VideoLightbox({
         }}
       />
 
-      {/* The shared-element popup. Clicks inside don't close it. */}
+      {/* The shared-element popup. Real box set once on open; everything else
+          animates via transform only (GPU-composited — no layout thrash). */}
       <div
         ref={containerRef}
-        onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          width: 0,
-          height: 0,
           borderRadius: START_RADIUS,
           overflow: 'hidden',
           background: '#000',
           isolation: 'isolate',
+          transformOrigin: 'top left',
           transition,
-          willChange: 'transform, opacity',
+          willChange: 'transform',
+          outline: 'none',
         }}
       >
         {/* Opaque black fill — prevents any backdrop-filter glow from compositing
@@ -336,23 +395,24 @@ export default function VideoLightbox({
           className="relative block h-full w-full object-fill"
           style={{ background: '#000', outline: 'none' }}
         />
+      </div>
 
-        {/* Close affordance — fades in with the controls. */}
-        <button
-          ref={closeBtnRef}
-          type="button"
-          onClick={beginClose}
-          aria-label="Close video"
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-[opacity,background-color] hover:bg-black/60"
+      {/* Cursor-follow close affordance — an "X" that tracks the pointer in
+          place of the native cursor. Clicking anywhere closes the popup. */}
+      {hasFinePointer && !prefersReduced && (
+        <div
+          ref={cursorRef}
+          aria-hidden
+          className="pointer-events-none fixed left-0 top-0 z-[210] flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-lg text-white backdrop-blur-md will-change-transform"
           style={{
             opacity: controlsReady ? 1 : 0,
+            transitionProperty: 'opacity',
             transitionDuration: `${CONTROLS_FADE}ms`,
-            pointerEvents: controlsReady ? 'auto' : 'none',
           }}
         >
           ✕
-        </button>
-      </div>
+        </div>
+      )}
     </div>,
     document.body,
   )

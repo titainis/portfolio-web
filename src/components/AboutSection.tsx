@@ -1,4 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { CustomEase } from 'gsap/CustomEase'
+
+gsap.registerPlugin(ScrollTrigger, CustomEase)
+CustomEase.create('workSinkIn', '0.16, 1, 0.3, 1')
 
 const services = [
   {
@@ -29,22 +35,56 @@ const services = [
 
 export default function AboutSection() {
   const [hovered, setHovered] = useState<number | null>(null)
+  const introRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const intro = introRef.current
+    if (!intro) return
+
+    const items = intro.querySelectorAll<HTMLElement>('[data-sink-item]')
+
+    const ctx = gsap.context(() => {
+      gsap.set(items, { y: -40, autoAlpha: 0 })
+
+      gsap.to(items, {
+        y: 0,
+        autoAlpha: 1,
+        duration: 1.1,
+        stagger: 0.12,
+        ease: 'workSinkIn',
+        scrollTrigger: {
+          trigger: intro,
+          start: 'top 85%',
+          toggleActions: 'play reverse play reverse',
+        },
+      })
+    })
+
+    return () => ctx.revert()
+  }, [])
 
   return (
     <section id="about" className="relative z-30 w-full overflow-hidden bg-white">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-24 px-6 py-32 sm:px-10 md:gap-40 md:px-20 md:py-64">
 
         {/* ── INTRO ─────────────────────────────────────────────────────── */}
-        <p className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem]  text-black md:text-2xl">
-          <span>
-            . We're a small studio with an outsized obsession for the details —
-            from the first wireframe to the final deploy. Every project starts
-            with listening: your users, your constraints, your ambitions,
+        <div ref={introRef} className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem] text-black md:text-2xl">
+          <span data-sink-item className="block">
+            We're a small studio with an outsized obsession for the details —
+          </span>
+          <span data-sink-item className="block">
+            from the first wireframe to the final deploy.
+          </span>
+          <span data-sink-item className="block">
+            Every project starts with listening: your users, your constraints,
+            your ambitions,
+          </span>
+          <span data-sink-item className="block">
             before a single line of code is written.
           </span>
 
-          <span className='block mt-20'>Fighting for authenticity. Making the different.</span>
-        </p>
+          <span data-sink-item className="mt-20 block">Fighting for authenticity making the difference</span>
+        </div>
 
         {/* Spacer between the intro description and the "what we build" list */}
         <div className="my-8 md:my-12" />

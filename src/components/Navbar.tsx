@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Shuffle from './ui/Shuffle'
 import { lenisStore } from '../cinematic/lenisStore'
 
@@ -15,6 +15,7 @@ interface Props {
 export default function Navbar({ onContactOpen }: Props) {
   const [visible, setVisible] = useState(false)
   const [isLightBg, setIsLightBg] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     function update() {
@@ -27,12 +28,18 @@ export default function Navbar({ onContactOpen }: Props) {
       // Show once the train rush starts blurring (~50% through the cinematic).
       setVisible(progress >= 0.5)
 
+      // Sample the background directly under the nav text's own vertical
+      // center, rather than a magic pixel offset, so the color flips exactly
+      // when a section's edge actually reaches the text — not before or after.
+      const navRect = navRef.current?.getBoundingClientRect()
+      const sampleY = navRect ? (navRect.top + navRect.bottom) / 2 : 0
+
       const about = document.getElementById('about')
       if (about) {
         const { top, bottom } = about.getBoundingClientRect()
-        // About section has a light (#ededed) background — switch to dark text
-        // when it overlaps the navbar area (top 80 px).
-        setIsLightBg(top <= 80 && bottom > 0)
+        // About section has a light background — switch to dark text only
+        // while it's actually behind the nav text.
+        setIsLightBg(top <= sampleY && bottom > sampleY)
       }
     }
 
@@ -51,6 +58,7 @@ export default function Navbar({ onContactOpen }: Props) {
 
   return (
     <nav
+      ref={navRef}
       className="fixed top-0 right-0 z-[40] flex justify-end p-6"
       style={{
         opacity: visible ? 1 : 0,
@@ -78,7 +86,7 @@ export default function Navbar({ onContactOpen }: Props) {
                 rootMargin="10000px"
                 textAlign="left"
                 className="text-xl font-extrabold tracking-[0.22em] cursor-pointer"
-                style={{ color: textColor, transition: 'color 0.4s ease' }}
+                style={{ color: textColor }}
                 respectReducedMotion={true}
               />
             </a>
