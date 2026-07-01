@@ -9,8 +9,20 @@ body,
   margin: 0;
   /* Cinematic base: never let a white flash appear behind the fixed scene. */
   background-color: #000000;
-  font-family: 'FK Grotesk', sans-serif;
+  font-family: 'Switzer', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Scrolling stays functional but the scrollbar track/thumb never renders. */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* ---------- Lenis smooth scroll ---------- */

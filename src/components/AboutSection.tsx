@@ -1,48 +1,42 @@
+import { useState } from 'react'
 import { RotatingText } from '@/components/ui/rotating-text'
 
 const services = [
   {
     n: '01',
     title: 'Web Development',
-    body: 'Fast, modern websites built to perform and convert — from marketing pages to full-scale portals.',
+    body: 'Fast, modern websites built to convert.',
+    image: 'https://picsum.photos/seed/web-development-studio/160/160',
   },
   {
     n: '02',
     title: 'E-Commerce',
-    body: 'Stores that sell. From product page to checkout, optimised for revenue at every step.',
+    body: 'Stores that sell, optimised for revenue.',
+    image: 'https://picsum.photos/seed/ecommerce-storefront/160/160',
   },
   {
     n: '03',
     title: 'Web Applications',
-    body: 'Complex tools made simple. Dashboards, platforms, and internal tools your team will actually use.',
+    body: 'Simple, powerful tools your team will use.',
+    image: 'https://picsum.photos/seed/web-app-dashboard/160/160',
   },
   {
     n: '04',
     title: 'AI Solutions',
-    body: 'Workflows that think. AI features woven directly into your product, not bolted on.',
+    body: 'AI features woven directly into your product.',
+    image: 'https://picsum.photos/seed/ai-solutions-tech/160/160',
   },
 ]
 
-const stats = [
-  { value: '40+', label: 'Products shipped' },
-  { value: '8 yrs', label: 'Building on the web' },
-  { value: '12', label: 'Industries served' },
-  { value: '100%', label: 'Remote & async' },
-]
-
 export default function AboutSection() {
-  return (
-    <section id="about" className="relative z-30 w-full bg-[#ededed]">
+  const [hovered, setHovered] = useState<number | null>(null)
 
-      {/* ── INTRO ─────────────────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-20 pt-24 pb-16">
-        <span className="text-xs font-medium tracking-[0.35em] text-[#6b94bf]">
-          ABOUT
-        </span>
-        <h2
-          className="mt-6 max-w-4xl text-4xl font-normal leading-[1.06] text-[#1e3a5f] sm:text-5xl md:text-6xl lg:text-[4rem]"
-          style={{ letterSpacing: '-0.02em' }}
-        >
+  return (
+    <section id="about" className="relative z-30 w-full overflow-hidden bg-white">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-24 px-6 py-32 sm:px-10 md:gap-40 md:px-20 md:py-64">
+
+        {/* ── INTRO ─────────────────────────────────────────────────────── */}
+        <p className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem] [word-spacing:0.5em] text-black md:text-2xl">
           <span>We provide </span>
           <RotatingText
             words={[
@@ -52,103 +46,87 @@ export default function AboutSection() {
               'AI Solutions',
             ]}
             interval={2500}
-            className="font-semibold text-[#6b94bf] align-bottom"
+            className="font-semibold text-black align-bottom"
           />
-        </h2>
-      </div>
-
-      <div className="border-t border-[#c5d5e5] mx-6 sm:mx-10 md:mx-20" />
-
-      {/* ── BODY COPY  +  STATS ───────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-20 py-16 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-12 md:gap-20 items-start">
-        <div>
-          <p className="text-xl font-light leading-relaxed text-[#2d4a6b] md:text-2xl">
-            From scattered signals to fast, considered products people actually enjoy using.
-          </p>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-[#3d5a7a]">
-            We're a small studio with an outsized obsession for the details. From the first wireframe to the final deploy, we obsess over the craft — so you don't have to.
-          </p>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-[#3d5a7a]">
-            Every project starts with listening. We take time to understand your users, your constraints, and your ambitions before a single line of code is written.
-          </p>
-        </div>
-
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-10 pt-2">
-          {stats.map(stat => (
-            <div key={stat.label}>
-              <dt className="text-4xl font-semibold text-[#1e3a5f] tabular-nums">
-                {stat.value}
-              </dt>
-              <dd className="mt-1 text-sm leading-snug text-[#3d5a7a]">
-                {stat.label}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-
-      <div className="border-t border-[#c5d5e5] mx-6 sm:mx-10 md:mx-20" />
-
-      {/* ── SERVICES ──────────────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-20 py-16">
-        <span className="text-xs font-medium tracking-[0.35em] text-[#6b94bf]">
-          WHAT WE BUILD
-        </span>
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-          {services.map(s => (
-            <div key={s.n} className="border-t border-[#c5d5e5] pt-6 pb-6 pr-8">
-              <span className="text-xs font-medium tracking-[0.3em] text-[#6b94bf]">
-                {s.n}
-              </span>
-              <h3 className="mt-3 text-base font-semibold text-[#1e3a5f] leading-snug">
-                {s.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[#3d5a7a]">
-                {s.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-t border-[#c5d5e5] mx-6 sm:mx-10 md:mx-20" />
-
-      {/* ── QUOTE  +  PROCESS ─────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-20 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        <p
-          className="text-2xl font-light leading-relaxed text-[#2d4a6b] md:text-3xl"
-          style={{ letterSpacing: '-0.01em' }}
-        >
-          "The difference between good and great is in the details most people never see."
+          <span>
+            . We're a small studio with an outsized obsession for the details —
+            from the first wireframe to the final deploy. Every project starts
+            with listening: your users, your constraints, your ambitions,
+            before a single line of code is written.
+          </span>
         </p>
 
-        <div className="space-y-8">
-          {[
-            { n: '01', label: 'Discovery', desc: 'We listen, ask hard questions, and map out what success actually looks like.' },
-            { n: '02', label: 'Design & Build', desc: 'Iterative sprints. You see real progress every week, not just a final reveal.' },
-            { n: '03', label: 'Ship & Grow', desc: 'Launch is the beginning. We stay close, measure, and keep improving.' },
-          ].map(step => (
-            <div key={step.n} className="flex gap-6 items-start">
-              <span className="shrink-0 text-xs font-medium tracking-[0.3em] text-[#6b94bf] pt-0.5">
-                {step.n}
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-[#1e3a5f]">{step.label}</p>
-                <p className="mt-1 text-sm leading-relaxed text-[#3d5a7a]">{step.desc}</p>
-              </div>
-            </div>
-          ))}
+        {/* Spacer between the intro description and the "what we build" list */}
+        <div className="my-12 py-16 md:my-20 md:py-24" />
+
+        {/* ── WHAT WE BUILD ─────────────────────────────────────────────── */}
+        <div className="relative">
+
+          <div className="relative z-10 pl-[32vw] pr-[10vw] md:pl-[32vw] md:pr-[12vw]">
+            <span className="text-2xl font-extrabold tracking-[0.20em]">
+              What We Do
+            </span>
+
+            <ul className="mt-20 flex flex-col items-start gap-8 md:gap-10">
+              {services.map((s, i) => {
+                const isHovered = hovered === i
+                return (
+                 <li
+                    key={s.n}
+                    onMouseEnter={() => setHovered(i)}
+                    onMouseLeave={() => setHovered(null)}
+                    className="relative flex cursor-default items-center gap-3 py-2"
+                  >
+
+                    {/* NEW TEXT — absolute, at the very left of the page */}
+                    <span
+                      className="pointer-events-none absolute left-[-32vw] top-1/2 whitespace-nowrap text-2xl font-bold text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:left-[-50vw] md:text-2xl"
+                      style={{
+                        opacity: isHovered ? 1 : 0,
+                        transform: `translateY(-50%) translateX(${isHovered ? '0px' : '20px'})`,
+                      }}
+                    >
+                      {s.body}
+                    </span>
+
+                    {/* TITLE CONTAINER — invisible ghost holds width when title fades out */}
+                    <span className="relative inline-block">
+                      <span className="invisible whitespace-nowrap text-2xl md:text-3xl" aria-hidden="true">
+                        {s.title}
+                      </span>
+
+                      {/* ORIGINAL TITLE — fades OUT in place */}
+                      <span
+                        className="absolute inset-0 whitespace-nowrap text-2xl text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:text-2xl"
+                        style={{
+                          fontWeight: 400,
+                          opacity: isHovered ? 0 : 1,
+                        }}
+                      >
+                        {s.title}
+                      </span>
+                    </span>
+
+                    {/* BIG TITLE — slides in from the RIGHT on hover */}
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-full top-1/2 ml-6 hidden whitespace-nowrap text-[9vw] font-semibold leading-none text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:ml-10 md:block"
+                      style={{
+                        opacity: isHovered ? 1 : 0,
+                        transform: `translateY(-50%) translateX(${isHovered ? '0px' : '60px'})`,
+                      }}
+                    >
+                      {s.title}
+                    </span>
+
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         </div>
+
       </div>
-
-      <div className="border-t border-[#c5d5e5] mx-6 sm:mx-10 md:mx-20" />
-
-      {/* ── FOOTER ROW ────────────────────────────────────────────────── */}
-      <div className="mx-auto w-full max-w-7xl px-6 sm:px-10 md:px-20 py-10 flex items-center justify-between flex-wrap gap-4">
-        <p className="text-xs font-medium tracking-[0.3em] text-[#6b94bf]">EST. 2016</p>
-        <p className="text-sm text-[#3d5a7a]">Remote-first · Globally distributed</p>
-      </div>
-
     </section>
   )
 }

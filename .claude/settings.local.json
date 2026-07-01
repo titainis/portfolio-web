@@ -52,7 +52,18 @@
       "Bash(gh pr create --title 'feat: redesign hero, About section, and remove curtain transitions' --body ' *)",
       "Bash(cat vite.config.*)",
       "Bash(cat tsconfig.json)",
-      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('framer-motion:', \\(p.dependencies||{}\\)['framer-motion'] || \\(p.devDependencies||{}\\)['framer-motion'] || 'NOT FOUND'\\)\")"
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('framer-motion:', \\(p.dependencies||{}\\)['framer-motion'] || \\(p.devDependencies||{}\\)['framer-motion'] || 'NOT FOUND'\\)\")",
+      "Bash(mkdir -p \"/c/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/971dcc29-c30a-4dc8-a2b8-8864af6d5aaf/scratchpad/frames\")",
+      "Bash(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 \"C:\\\\Users\\\\tituk\\\\Videos\\\\Screen Recordings\\\\Screen Recording 2026-07-01 145512.mp4\")",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "Read(//c/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/971dcc29-c30a-4dc8-a2b8-8864af6d5aaf/scratchpad/frames/**)",
+      "Bash(ffmpeg -y -i \"C:\\\\Users\\\\tituk\\\\Videos\\\\Screen Recordings\\\\Screen Recording 2026-07-01 145512.mp4\" -vf \"fps=2,scale=1280:-1\" frame_%03d.png)",
+      "Bash(fc-list)",
+      "Bash(curl -s -D - -o /tmp/fk.css \"https://fonts.floriankarsten.com/fk-grotesk\")",
+      "Read(//tmp/**)",
+      "Read(//c/tmp/**)",
+      "Bash(curl -s -D - -o /dev/null \"https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap\")",
+      "Bash(curl -s \"https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap\")"
     ]
   }
 }

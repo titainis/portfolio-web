@@ -47,7 +47,7 @@ export default function Navbar({ onContactOpen }: Props) {
     lenisStore.scrollTo(target)
   }
 
-  const textColor = isLightBg ? '#1e3a5f' : 'rgba(255,255,255,0.9)'
+  const textColor = isLightBg ? '#000000' : 'rgba(255,255,255,0.9)'
 
   return (
     <nav
