@@ -71,7 +71,18 @@
       "Bash(ffprobe -v error -show_entries stream=codec_type,codec_name -of default=noprint_wrappers=1 '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4')",
       "Bash(ffprobe -v error -show_entries format=bit_rate,size -of default=noprint_wrappers=1 '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4')",
       "Bash(ffmpeg -y -i '/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-01 232209.mp4' -an -c:v copy -movflags +faststart /c/Users/tituk/Documents/Claude_projects/Portfolio-web/public/work/folidify-recording.mp4)",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/gsap/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./node_modules/gsap/package.json'\\).version\\)\")",
+      "PowerShell(npm install @react-three/fiber@^8 @react-three/drei@^9)",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\\\\public\\\\models\")",
+      "PowerShell(npx -y gltf-pipeline -i \"C:\\\\Users\\\\tituk\\\\Downloads\\\\japanese_torii_gate\\\\scene.gltf\" -o \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\\\\public\\\\models\\\\torii-gate.glb\")",
+      "Bash(npx gltf-pipeline *)",
+      "Bash(SCRATCH=\"C:\\\\Users\\\\tituk\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-tituk-Documents-Claude-projects-Portfolio-web\\\\1d96e9f5-e785-4a38-8d3b-3df21a766bf4\\\\scratchpad\\\\torii-src\" *)",
+      "Bash(npx --yes sharp-cli resize 1024 1024 -i Material.001_baseColor.png -o Material.001_baseColor.jpg -f jpeg -q 85)",
+      "Bash(npx --yes sharp-cli resize 1024 1024 -i Material.001_normal.png -o Material.001_normal_resized.png -f png)",
+      "Bash(npx --yes sharp-cli resize 1024 1024 -i Material.001_metallicRoughness.png -o Material.001_metallicRoughness_resized.png -f png)",
+      "Bash(npx --yes sharp-cli resize 1024 1024 -i Material.001_normal.png -o Material.001_normal.jpg -f jpeg -q 92)",
+      "Bash(npx --yes sharp-cli resize 1024 1024 -i Material.001_metallicRoughness.png -o Material.001_metallicRoughness.jpg -f jpeg -q 90)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\\\\public\\\\videos\" && cp \"C:\\\\Users\\\\tituk\\\\Downloads\\\\video_no_text \\(online-video-cutter.com\\).mp4\" \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\\\\public\\\\videos\\\\water-drop.mp4\" && ls -la \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\\\\public\\\\videos\")"
     ]
   }
 }

@@ -11,6 +11,10 @@ body,
   background-color: #000000;
   font-family: 'Switzer', sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* WORK's cover-reveal slides itself xPercent:-100 and stays there once
+     unpinned (nothing follows it in flow) — this is the backstop against
+     that leaving a horizontally-scrollable sliver. */
+  overflow-x: hidden;
 }
 
 /* Scrolling stays functional but the scrollbar track/thumb never renders. */

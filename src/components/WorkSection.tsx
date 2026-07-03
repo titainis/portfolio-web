@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CustomEase } from 'gsap/CustomEase'
 import VideoLightbox from './VideoLightbox'
 import Shuffle from './ui/Shuffle'
+import { scrollProgress } from './ContactSection'
 
 gsap.registerPlugin(ScrollTrigger, CustomEase)
 // "Fast start, gentle landing" — matches CSS cubic-bezier(0.16, 1, 0.3, 1).
@@ -22,6 +23,14 @@ CustomEase.create('workSinkIn', '0.16, 1, 0.3, 1')
  * card stacks vertically — a large 16/9 video on top, framed with thin
  * "technical drawing" line work (hairlines sitting slightly OUTSIDE the video
  * that overshoot at the corners), with the title/description/link below it.
+ *
+ * The SAME pin is then extended by one extra viewport of scroll: once the
+ * gallery track finishes scrubbing, the whole section (still pinned, opaque,
+ * z-30) slides off to the left via xPercent, uncovering the permanently
+ * fixed <ContactSection/> (z-10) sitting behind it the entire time. A single
+ * ScrollTrigger drives both phases — GSAP won't let the same element be
+ * pinned by two separate triggers, so the "slide away" can't be a second,
+ * independent pin the way it might be on a plain (non-gallery) section.
  *
  * Per-panel reveal is driven manually from the same scrub progress that moves
  * the track (not IntersectionObserver — under a pinned, transform-driven
@@ -196,41 +205,76 @@ export default function WorkSection() {
         })
       }
 
-      // --- Horizontal pin: vertical scroll scrubs the track's translateX. ---
-      gsap.to(track, {
-        x: () => -distance(),
-        ease: 'none',
+      // --- Horizontal pin: vertical scroll scrubs the track's translateX,
+      // then (same pin, phase 2) slides the whole section away. ---
+      const revealDistance = () => window.innerHeight
+
+      const tl = gsap.timeline({
         scrollTrigger: {
           trigger: wrap,
           start: 'top top',
-          end: () => '+=' + distance(),
+          end: () => '+=' + (distance() + revealDistance()),
           scrub: 1.2,
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          onUpdate: reduced
-            ? undefined
-            : (self) => {
-                const n = panels.length
-                if (n < 2) return
-                panels.forEach((panel, i) => {
-                  if (i === 0) return
-                  const startP = (i - 0.85) / (n - 1)
-                  const endP = (i - 0.15) / (n - 1)
-                  applyReveal(panel, (self.progress - startP) / (endP - startP))
-                  // Panels never move vertically under the pin, so a normal
-                  // scroll-position trigger can't tell when one has scrolled
-                  // into (horizontal) view — reuse the same scrub progress
-                  // that already drives its reveal instead.
-                  if (self.progress >= startP) playSinkIn(panel)
-                  else resetSinkIn(panel)
-                })
-              },
+          onUpdate: (self) => {
+            const total = distance() + revealDistance()
+            const galleryFraction = total > 0 ? distance() / total : 0
+
+            // 0 for the whole gallery phase, then 0→1 across the slide-away
+            // — this is what CameraRig (in ContactSection) dollies in on.
+            scrollProgress.value =
+              galleryFraction < 1
+                ? clamp01((self.progress - galleryFraction) / (1 - galleryFraction))
+                : 0
+
+            if (reduced) return
+            const n = panels.length
+            if (n < 2) return
+            panels.forEach((panel, i) => {
+              if (i === 0) return
+              // Rescaled by galleryFraction: panel choreography must still
+              // finish entirely within phase 1, which is now only part of
+              // the pin's total (gallery + reveal) scroll range.
+              const startP = ((i - 0.85) / (n - 1)) * galleryFraction
+              const endP = ((i - 0.15) / (n - 1)) * galleryFraction
+              applyReveal(panel, (self.progress - startP) / (endP - startP))
+              // Panels never move vertically under the pin, so a normal
+              // scroll-position trigger can't tell when one has scrolled
+              // into (horizontal) view — reuse the same scrub progress
+              // that already drives its reveal instead.
+              if (self.progress >= startP) playSinkIn(panel)
+              else resetSinkIn(panel)
+            })
+          },
         },
       })
+
+      // Phase 1 — gallery scrub. "duration" is just the phase's share of
+      // the timeline under scrub (arbitrary time units); using the raw
+      // pixel distances keeps phase 1 : phase 2 proportional to their
+      // actual scroll lengths.
+      tl.to(track, { x: () => -distance(), ease: 'none', duration: distance() }, 0)
+        // Phase 2 — the whole (still-pinned) section slides off to the
+        // left, starting exactly where phase 1 ends.
+        .to(wrap, { xPercent: -100, ease: 'none', duration: revealDistance() }, distance())
     })
 
-    requestAnimationFrame(() => ScrollTrigger.refresh())
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh()
+      // GSAP's pin-spacer copies this section's z-30 and keeps occupying the
+      // viewport after the phase-2 slide — transparent, but it swallows the
+      // drags meant for the fixed gate underneath. Let input pass through
+      // the spacer while keeping the gallery itself interactive (an explicit
+      // pointer-events:auto child still receives events under a :none
+      // parent).
+      const spacer = wrap.parentElement
+      if (spacer?.classList.contains('pin-spacer')) {
+        spacer.style.pointerEvents = 'none'
+        wrap.style.pointerEvents = 'auto'
+      }
+    })
     // Re-measure once every asset (the project videos especially) has
     // settled, in case anything above this section shifted layout after
     // the first refresh ran.
@@ -239,6 +283,7 @@ export default function WorkSection() {
 
     return () => {
       window.removeEventListener('load', onLoad)
+      wrap.style.pointerEvents = ''
       ctx.revert()
     }
   }, [])
@@ -331,7 +376,7 @@ export default function WorkSection() {
 
                   {/* Caption — below the video, title/description on the
                       left, the link on the right. */}
-                  <div className="mt-6 flex items-start justify-between gap-6 md:mt-8">
+                  <div className="mt-8 flex items-start justify-between gap-6 md:mt-20">
                     <div>
                       <h3
                         data-sink-item

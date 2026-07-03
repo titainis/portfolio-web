@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import CameraLayers from './CameraLayers'
 import AboutSection from '../components/AboutSection'
 import WorkSection from '../components/WorkSection'
+import ContactSection from '../components/ContactSection'
 import { useLenis } from './useLenis'
 import { useScrollProgress } from './useScrollProgress'
 import { useMouseParallax } from './useMouseParallax'
@@ -76,6 +77,10 @@ export default function CinematicScrollLayer({ children }: CinematicScrollLayerP
       {/* WORK — vertical, editorial grid of project cards. Owns #work so the
           navbar lands here. Self-contained: manages its own video lightbox. */}
       <WorkSection />
+
+      {/* CONTACT — full-screen 3D background (spinning torii gate) with the
+          call-to-action text overlaid on top. */}
+      <ContactSection />
     </>
   )
 }
