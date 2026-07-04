@@ -5,6 +5,7 @@ import CameraLayers from './CameraLayers'
 import AboutSection from '../components/AboutSection'
 import WorkSection from '../components/WorkSection'
 import ContactSection from '../components/ContactSection'
+import { PRELOADER_REVEALED } from '../components/preloaderRevealEvent'
 import { useLenis } from './useLenis'
 import { useScrollProgress } from './useScrollProgress'
 import { useMouseParallax } from './useMouseParallax'
@@ -46,7 +47,26 @@ export default function CinematicScrollLayer({ children }: CinematicScrollLayerP
 
     requestAnimationFrame(() => ScrollTrigger.refresh())
 
-    return () => ctx.revert()
+    // The landscape + train window both start slightly dimmed (Preloader's
+    // white panels are covering them anyway) and brighten to full opacity in
+    // lockstep with the panels sliding apart, so the scene visibly "gains
+    // light" as the split opens rather than just sitting there fully lit.
+    // Set after buildCameraTimeline() so this overrides its initial
+    // autoAlpha: 1 on the train layer.
+    gsap.set([landscape, train], { autoAlpha: 0.5 })
+    function revealScene() {
+      gsap.to([landscape, train], {
+        autoAlpha: 1,
+        duration: 1.1,
+        ease: 'power2.out',
+      })
+    }
+    window.addEventListener(PRELOADER_REVEALED, revealScene)
+
+    return () => {
+      ctx.revert()
+      window.removeEventListener(PRELOADER_REVEALED, revealScene)
+    }
   }, [report])
 
   return (
@@ -78,8 +98,7 @@ export default function CinematicScrollLayer({ children }: CinematicScrollLayerP
           navbar lands here. Self-contained: manages its own video lightbox. */}
       <WorkSection />
 
-      {/* CONTACT — full-screen 3D background (spinning torii gate) with the
-          call-to-action text overlaid on top. */}
+      {/* CONTACT — revealed as WORK slides off; plain text call-to-action. */}
       <ContactSection />
     </>
   )

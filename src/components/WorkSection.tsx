@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CustomEase } from 'gsap/CustomEase'
 import VideoLightbox from './VideoLightbox'
 import Shuffle from './ui/Shuffle'
-import { scrollProgress } from './ContactSection'
+import { CONTACT_REVEALED } from './contactRevealEvent'
 
 gsap.registerPlugin(ScrollTrigger, CustomEase)
 // "Fast start, gentle landing" — matches CSS cubic-bezier(0.16, 1, 0.3, 1).
@@ -27,7 +27,7 @@ CustomEase.create('workSinkIn', '0.16, 1, 0.3, 1')
  * The SAME pin is then extended by one extra viewport of scroll: once the
  * gallery track finishes scrubbing, the whole section (still pinned, opaque,
  * z-30) slides off to the left via xPercent, uncovering the permanently
- * fixed <ContactSection/> (z-10) sitting behind it the entire time. A single
+ * fixed <ContactSection/> (z-25) sitting behind it the entire time. A single
  * ScrollTrigger drives both phases — GSAP won't let the same element be
  * pinned by two separate triggers, so the "slide away" can't be a second,
  * independent pin the way it might be on a plain (non-gallery) section.
@@ -218,20 +218,16 @@ export default function WorkSection() {
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          // The instant scroll continues past this trigger's own end — i.e.
+          // the phase-2 slide has fully finished and CONTACT is completely
+          // uncovered.
+          onLeave: () => window.dispatchEvent(new Event(CONTACT_REVEALED)),
           onUpdate: (self) => {
-            const total = distance() + revealDistance()
-            const galleryFraction = total > 0 ? distance() / total : 0
-
-            // 0 for the whole gallery phase, then 0→1 across the slide-away
-            // — this is what CameraRig (in ContactSection) dollies in on.
-            scrollProgress.value =
-              galleryFraction < 1
-                ? clamp01((self.progress - galleryFraction) / (1 - galleryFraction))
-                : 0
-
             if (reduced) return
             const n = panels.length
             if (n < 2) return
+            const total = distance() + revealDistance()
+            const galleryFraction = total > 0 ? distance() / total : 0
             panels.forEach((panel, i) => {
               if (i === 0) return
               // Rescaled by galleryFraction: panel choreography must still
@@ -257,18 +253,19 @@ export default function WorkSection() {
       // actual scroll lengths.
       tl.to(track, { x: () => -distance(), ease: 'none', duration: distance() }, 0)
         // Phase 2 — the whole (still-pinned) section slides off to the
-        // left, starting exactly where phase 1 ends.
+        // left, starting exactly where phase 1 ends, uncovering the fixed
+        // ContactSection sitting behind it the entire time.
         .to(wrap, { xPercent: -100, ease: 'none', duration: revealDistance() }, distance())
     })
 
     requestAnimationFrame(() => {
       ScrollTrigger.refresh()
       // GSAP's pin-spacer copies this section's z-30 and keeps occupying the
-      // viewport after the phase-2 slide — transparent, but it swallows the
-      // drags meant for the fixed gate underneath. Let input pass through
-      // the spacer while keeping the gallery itself interactive (an explicit
-      // pointer-events:auto child still receives events under a :none
-      // parent).
+      // viewport after the phase-2 slide — transparent, but it swallows
+      // pointer input meant for whatever's now visible underneath. Let
+      // input pass through the spacer while keeping the gallery itself
+      // interactive (an explicit pointer-events:auto child still receives
+      // events under a :none parent).
       const spacer = wrap.parentElement
       if (spacer?.classList.contains('pin-spacer')) {
         spacer.style.pointerEvents = 'none'
