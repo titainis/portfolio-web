@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import Hls from 'hls.js'
+import type Hls from 'hls.js'
 import { CONTACT_REVEALED } from './contactRevealEvent'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -46,13 +46,20 @@ export default function ContactSection() {
     const video = videoRef.current
     if (!video) return
 
+    // hls.js is ~400 kB minified — dynamically imported so it loads as its own
+    // chunk after the main bundle instead of blocking first paint. Safari plays
+    // the stream natively and never downloads it at all.
     let hls: Hls | null = null
-    if (Hls.isSupported()) {
-      hls = new Hls()
-      hls.loadSource(STREAM_URL)
-      hls.attachMedia(video)
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    let cancelled = false
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = STREAM_URL
+    } else {
+      import('hls.js').then(({ default: HlsLib }) => {
+        if (cancelled || !HlsLib.isSupported()) return
+        hls = new HlsLib()
+        hls.loadSource(STREAM_URL)
+        hls.attachMedia(video)
+      })
     }
 
     gsap.set(video, { opacity: 0, scale: 0.14 })
@@ -73,6 +80,7 @@ export default function ContactSection() {
     window.addEventListener(CONTACT_REVEALED, reveal)
 
     return () => {
+      cancelled = true
       tl?.kill()
       window.removeEventListener(CONTACT_REVEALED, reveal)
       hls?.destroy()
@@ -87,11 +95,9 @@ export default function ContactSection() {
     // actually performs the reveal; this section just needs to already be
     // here, one z-index lower, the whole time.
     //
-    // z-[25]: above the fixed .cinematic-ui-overlay (z-20 — an empty hero
-    // overlay the intro timeline leaves pointer-events:auto; anything below
-    // it never receives a drag), below the WORK cover (z-30). Starts
-    // visibility:hidden inline so it can't flash over the hero before the
-    // gating effect above runs.
+    // z-[25]: above the fixed cinematic layers, below the WORK cover (z-30).
+    // Starts visibility:hidden inline so it can't flash over the hero before
+    // the gating effect above runs.
     <section
       id="contact"
       ref={sectionRef}

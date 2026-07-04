@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { TiltCard } from './ui/be-ui-tilt-card'
 import { lenisStore } from '../cinematic/lenisStore'
-import Shuffle from './ui/Shuffle'
+import Shuffle, { shufflePreset } from './ui/Shuffle'
 
 // ─── Formspree setup ────────────────────────────────────────────────────────
 // 1. Go to https://formspree.io and create a free account
@@ -103,18 +103,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               >
                 <Shuffle
                   text="CLOSE ×"
-                  tag="span"
-                  shuffleDirection="right"
-                  duration={0.26}
-                  stagger={0.02}
-                  animationMode="evenodd"
-                  triggerOnce={true}
-                  triggerOnHover={true}
-                  threshold={0}
-                  rootMargin="10000px"
-                  textAlign="left"
+                  {...shufflePreset}
                   className="inline-block px-3 py-1.5 text-[10px] font-medium tracking-[0.22em] text-white/45 cursor-pointer"
-                  respectReducedMotion={true}
                 />
               </button>
 
@@ -200,18 +190,9 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   >
                     <Shuffle
                       text={status === 'loading' ? 'SENDING…' : 'Submit'}
-                      tag="span"
-                      shuffleDirection="right"
-                      duration={0.26}
-                      stagger={0.02}
-                      animationMode="evenodd"
-                      triggerOnce={true}
-                      triggerOnHover={true}
-                      threshold={0}
-                      rootMargin="10000px"
+                      {...shufflePreset}
                       textAlign="center"
                       className="block py-3.5 text-[10px] font-medium tracking-[0.28em] text-[#0b1220] cursor-pointer"
-                      respectReducedMotion={true}
                     />
                   </button>
                 </form>

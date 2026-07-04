@@ -3,7 +3,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CustomEase } from 'gsap/CustomEase'
 import VideoLightbox from './VideoLightbox'
-import Shuffle from './ui/Shuffle'
+import Shuffle, { shufflePreset } from './ui/Shuffle'
 import { CONTACT_REVEALED } from './contactRevealEvent'
 
 gsap.registerPlugin(ScrollTrigger, CustomEase)
@@ -77,20 +77,6 @@ const projects: Project[] = [
   },
 ]
 
-const shuffleLinkProps = {
-  tag: 'span' as const,
-  shuffleDirection: 'right' as const,
-  duration: 0.26,
-  stagger: 0.02,
-  animationMode: 'evenodd' as const,
-  triggerOnce: true,
-  triggerOnHover: true,
-  threshold: 0,
-  rootMargin: '10000px',
-  textAlign: 'left' as const,
-  respectReducedMotion: true,
-}
-
 function IntroCopy() {
   return (
     <h2 className="text-4xl font-normal leading-[1.05] text-white sm:text-5xl lg:text-6xl">
@@ -137,6 +123,19 @@ export default function WorkSection() {
       gsap.set(hLines, { scaleX: t })
       gsap.set(vLines, { scaleY: t })
       gsap.set(videoWrap, { opacity: t, y: 60 * (1 - t), scale: 0.95 + 0.05 * t })
+
+      // The thumbnails deliberately have no autoPlay: together they're tens of
+      // MB, so each one only downloads/decodes once its reveal actually starts.
+      // ponytail: panels already scrolled past keep playing; pause those too if
+      // decode cost ever shows up.
+      const video = videoWrap?.querySelector('video')
+      if (video) {
+        if (t === 0) {
+          if (!video.paused) video.pause()
+        } else if (video.paused) {
+          video.play().catch(() => {})
+        }
+      }
     }
 
     // Sinks every text element in a panel up into place together, staggered
@@ -361,10 +360,10 @@ export default function WorkSection() {
                       >
                         <video
                           src={project.video}
-                          autoPlay
                           muted
                           loop
                           playsInline
+                          preload="metadata"
                           className="h-full w-full object-cover"
                         />
                       </button>
@@ -396,7 +395,7 @@ export default function WorkSection() {
                         rel="noopener noreferrer"
                         className="mt-1 inline-flex shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
                       >
-                        <Shuffle text="Explore project" {...shuffleLinkProps} />
+                        <Shuffle text="Explore project" {...shufflePreset} />
                         <span aria-hidden>&rarr;</span>
                       </a>
                     )}

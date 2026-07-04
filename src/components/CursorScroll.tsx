@@ -28,8 +28,8 @@ export default function CursorScroll() {
     }
     rafRef.current = requestAnimationFrame(tick)
 
+    const spacer = document.querySelector<HTMLElement>('.cinematic-phase1-spacer')
     const onScroll = () => {
-      const spacer  = document.querySelector<HTMLElement>('.cinematic-phase1-spacer')
       const spacerH = spacer?.offsetHeight ?? window.innerHeight * 4
       setVisible(Math.min(1, window.scrollY / spacerH) < 0.5)
     }

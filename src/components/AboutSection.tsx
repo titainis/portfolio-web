@@ -11,25 +11,21 @@ const services = [
     n: '01',
     title: 'Web Development',
     body: 'Fast, modern websites built to convert.',
-    image: 'https://picsum.photos/seed/web-development-studio/160/160',
   },
   {
     n: '02',
     title: 'E-Commerce',
     body: 'Stores that sell, optimised for revenue.',
-    image: 'https://picsum.photos/seed/ecommerce-storefront/160/160',
   },
   {
     n: '03',
     title: 'Web Applications',
     body: 'Simple, powerful tools your team will use.',
-    image: 'https://picsum.photos/seed/web-app-dashboard/160/160',
   },
   {
     n: '04',
     title: 'AI Solutions',
     body: 'AI features woven directly into your product.',
-    image: 'https://picsum.photos/seed/ai-solutions-tech/160/160',
   },
 ]
 

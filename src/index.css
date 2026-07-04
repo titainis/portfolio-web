@@ -163,14 +163,6 @@ html.lenis body {
     inset 0 -120px 140px -40px rgba(0, 0, 0, 0.95);
 }
 
-/* Fixed navbar + hero overlay. Sits above both cinematic layers (z 20) and is
-   hidden until the scene completes. Covered by the horizontal section (z 30). */
-.cinematic-ui-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-}
-
 /* Transparent in-flow spacer that gives phase 1 its scroll length. The fixed
    cinematic layers remain visible through it. */
 .cinematic-phase1-spacer {
@@ -194,36 +186,10 @@ html.lenis body {
   100% { opacity: 1; }
 }
 
-@keyframes sinkin {
-  from {
-    opacity: 0;
-    transform: translateY(-22px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.sinkin {
-  animation: sinkin 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.sinkin-delay {
-  animation: sinkin 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cinema-landscape,
   .cinema-train,
   .camera-haze {
     will-change: auto;
-  }
-
-  .sinkin,
-  .sinkin-delay {
-    animation: none;
-    opacity: 1;
-    transform: none;
   }
 }

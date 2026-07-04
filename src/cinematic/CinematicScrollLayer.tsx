@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import CameraLayers from './CameraLayers'
@@ -7,23 +7,16 @@ import WorkSection from '../components/WorkSection'
 import ContactSection from '../components/ContactSection'
 import { PRELOADER_REVEALED } from '../components/preloaderRevealEvent'
 import { useLenis } from './useLenis'
-import { useScrollProgress } from './useScrollProgress'
 import { useMouseParallax } from './useMouseParallax'
 import { buildCameraTimeline } from './scrollTimelines'
 
-interface CinematicScrollLayerProps {
-  children?: ReactNode
-}
-
-export default function CinematicScrollLayer({ children }: CinematicScrollLayerProps) {
-  // Smooth-scroll engine + single source of truth for scroll progress.
+export default function CinematicScrollLayer() {
+  // Smooth-scroll engine.
   useLenis()
-  const { report } = useScrollProgress()
 
   const landscapeRef = useRef<HTMLDivElement>(null)
   const hazeRef = useRef<HTMLDivElement>(null)
   const trainRef = useRef<HTMLDivElement>(null)
-  const overlayRef = useRef<HTMLDivElement>(null)
   const spacerRef = useRef<HTMLDivElement>(null)
 
   // Subtle cursor-driven perspective on the fixed camera layers. Writes only
@@ -35,14 +28,13 @@ export default function CinematicScrollLayer({ children }: CinematicScrollLayerP
     const landscape = landscapeRef.current
     const haze = hazeRef.current
     const train = trainRef.current
-    const overlay = overlayRef.current
     const spacer = spacerRef.current
-    if (!landscape || !haze || !train || !overlay || !spacer) {
+    if (!landscape || !haze || !train || !spacer) {
       return
     }
 
     const ctx = gsap.context(() => {
-      buildCameraTimeline({ spacer, landscape, haze, train, overlay }, report)
+      buildCameraTimeline({ spacer, landscape, haze, train })
     })
 
     requestAnimationFrame(() => ScrollTrigger.refresh())
@@ -67,7 +59,7 @@ export default function CinematicScrollLayer({ children }: CinematicScrollLayerP
       ctx.revert()
       window.removeEventListener(PRELOADER_REVEALED, revealScene)
     }
-  }, [report])
+  }, [])
 
   return (
     <>
@@ -77,15 +69,6 @@ export default function CinematicScrollLayer({ children }: CinematicScrollLayerP
         hazeRef={hazeRef}
         trainRef={trainRef}
       />
-
-      {/* Fixed navbar + hero overlay — scroll-revealed, structurally untouched */}
-      <div
-        ref={overlayRef}
-        className="cinematic-ui-overlay"
-        style={{ opacity: 0, visibility: 'hidden', pointerEvents: 'none' }}
-      >
-        {children}
-      </div>
 
       {/* Transparent scroll driver for phase 1 (fixed layers show through). */}
       <div ref={spacerRef} className="cinematic-phase1-spacer" aria-hidden />

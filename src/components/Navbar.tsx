@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import Shuffle from './ui/Shuffle'
+import Shuffle, { shufflePreset } from './ui/Shuffle'
 import { lenisStore } from '../cinematic/lenisStore'
 
 const navItems = [
@@ -18,10 +18,12 @@ export default function Navbar({ onContactOpen }: Props) {
   const navRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
+    // Both elements are static for the life of the page — look them up once,
+    // not on every scroll event.
+    const spacer = document.querySelector<HTMLElement>('.cinematic-phase1-spacer')
+    const about = document.getElementById('about')
+
     function update() {
-      // Derive progress from scroll position directly so it works before and
-      // after GSAP initialises the CSS variable.
-      const spacer = document.querySelector<HTMLElement>('.cinematic-phase1-spacer')
       const spacerH = spacer?.offsetHeight ?? window.innerHeight * 4
       const progress = Math.min(1, window.scrollY / spacerH)
 
@@ -34,7 +36,6 @@ export default function Navbar({ onContactOpen }: Props) {
       const navRect = navRef.current?.getBoundingClientRect()
       const sampleY = navRect ? (navRect.top + navRect.bottom) / 2 : 0
 
-      const about = document.getElementById('about')
       if (about) {
         const { top, bottom } = about.getBoundingClientRect()
         // About section has a light background — switch to dark text only
@@ -75,19 +76,9 @@ export default function Navbar({ onContactOpen }: Props) {
             >
               <Shuffle
                 text={label}
-                tag="span"
-                shuffleDirection="right"
-                duration={0.26}
-                stagger={0.02}
-                animationMode="evenodd"
-                triggerOnce={true}
-                triggerOnHover={true}
-                threshold={0}
-                rootMargin="10000px"
-                textAlign="left"
+                {...shufflePreset}
                 className="text-xl font-extrabold tracking-[0.22em] cursor-pointer"
                 style={{ color: textColor }}
-                respectReducedMotion={true}
               />
             </a>
           </li>

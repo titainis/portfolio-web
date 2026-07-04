@@ -377,4 +377,15 @@ const Shuffle: React.FC<ShuffleProps> = ({
   return <Tag ref={ref as any} className={classes} style={commonStyle}>{text}</Tag>
 }
 
+// Site-wide preset (nav links, modal buttons, work links) — only the values
+// that differ from Shuffle's own defaults. Spread first, override after.
+export const shufflePreset = {
+  tag: 'span',
+  duration: 0.26,
+  stagger: 0.02,
+  threshold: 0,
+  rootMargin: '10000px',
+  textAlign: 'left',
+} as const
+
 export default Shuffle

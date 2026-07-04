@@ -1,8 +1,5 @@
 import gsap from 'gsap'
 
-/** Reports the unified scroll progress (0..1 vertical, 1..2 horizontal). */
-export type ProgressReporter = (progress: number) => void
-
 export interface CameraRefs {
   /** Transparent in-flow spacer whose scroll length drives phase 1 (0 -> 1). */
   spacer: HTMLElement
@@ -12,8 +9,6 @@ export interface CameraRefs {
   haze: HTMLElement
   /** Foreground train layer — independent transform target. */
   train: HTMLElement
-  /** Fixed navbar overlay. */
-  overlay: HTMLElement
 }
 
 /**
@@ -30,11 +25,9 @@ export interface CameraRefs {
  *                THROUGH the window, the frame/seats sliding off every edge.
  *                Motion blur builds during the rush; opacity fades 1 -> 0 only
  *                at the end, once it has engulfed the screen ("pass-through").
- *   Hero UI    : purely scroll-mapped reveal — hidden < 0.75, fading 0.75 ->
- *                0.95, full by 1.0.
  */
-export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter) {
-  const { spacer, landscape, haze, train, overlay } = refs
+export function buildCameraTimeline(refs: CameraRefs) {
+  const { spacer, landscape, haze, train } = refs
 
   gsap.set(landscape, { scale: 1, yPercent: 0, transformOrigin: '50% 44%' })
   gsap.set(haze, { autoAlpha: 0 })
@@ -45,7 +38,6 @@ export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter)
     filter: 'blur(0px)',
     transformOrigin: '50% 43%',
   })
-  gsap.set(overlay, { autoAlpha: 0, pointerEvents: 'none' })
 
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
@@ -55,7 +47,6 @@ export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter)
       end: 'bottom bottom',
       scrub: 1.2,
       invalidateOnRefresh: true,
-      onUpdate: (self) => report?.(self.progress),
     },
   })
 
@@ -78,10 +69,6 @@ export function buildCameraTimeline(refs: CameraRefs, report?: ProgressReporter)
   tl.to(train, { scale: 6, ease: 'power2.in', duration: 0.9 }, 0)
     .to(train, { filter: 'blur(7px)', ease: 'power1.in', duration: 0.25 }, 0.55)
     .to(train, { autoAlpha: 0, ease: 'power2.in', duration: 0.18 }, 0.72)
-
-  // --- NAV OVERLAY: fade in at the end of the camera move ---
-  tl.to(overlay, { autoAlpha: 1, ease: 'power2.out', duration: 0.2 }, 0.75)
-    .set(overlay, { pointerEvents: 'auto' }, 0.9)
 
   return tl
 }
