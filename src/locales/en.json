@@ -58,6 +58,7 @@
     "detailsPlaceholder": "Tell us about your project — what you're building, your timeline, and budget.",
     "successMessage": "Your request is on its way — we'll be in touch soon.",
     "errorMessage": "Something went wrong — please try again.",
+    "required": "This field is required.",
     "sending": "SENDING…",
     "submit": "Submit"
   },

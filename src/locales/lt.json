@@ -58,6 +58,7 @@
     "detailsPlaceholder": "Papasakokite apie savo projektą — ką kuriate, kokie terminai ir biudžetas.",
     "successMessage": "Jūsų užklausa jau pakeliui — netrukus susisieksime.",
     "errorMessage": "Kažkas nutiko ne taip — bandykite dar kartą.",
+    "required": "Šis laukas yra privalomas.",
     "sending": "SIUNČIAMA…",
     "submit": "Pateikti"
   },

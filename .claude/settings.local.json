@@ -98,7 +98,25 @@
       "Bash(mkdir -p \"/c/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/03f7a8f1-331e-48c5-b542-15388639b20f/scratchpad/frames\")",
       "Bash(ffprobe -v error -show_entries format=duration -of csv=p=0 \"/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-04 183009.mp4\")",
       "Read(//c/Users/tituk/AppData/Local/Temp/claude/C--Users-tituk-Documents-Claude-projects-Portfolio-web/03f7a8f1-331e-48c5-b542-15388639b20f/scratchpad/frames/**)",
-      "Bash(ffmpeg -y -i \"/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-04 183009.mp4\" -vf \"fps=8,scale=800:-1\" frame_%03d.png -hide_banner -loglevel error)"
+      "Bash(ffmpeg -y -i \"/c/Users/tituk/Videos/Screen Recordings/Screen Recording 2026-07-04 183009.mp4\" -vf \"fps=8,scale=800:-1\" frame_%03d.png -hide_banner -loglevel error)",
+      "Bash(ffmpeg -y -i \"C:\\\\Users\\\\tituk\\\\Videos\\\\Screen Recordings\\\\Screen Recording 2026-07-05 153737.mp4\" -vf \"fps=2\" \"C:\\\\Users\\\\tituk\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-tituk-Documents-Claude-projects-Portfolio-web\\\\4c3ba042-9a9c-44d9-89aa-913c986e2955\\\\scratchpad\\\\frames\\\\frame_%03d.png\")",
+      "Bash(ffprobe -v error -show_entries stream=width,height,codec_type,r_frame_rate,duration -of default=noprint_wrappers=0 \"C:\\\\Users\\\\tituk\\\\Videos\\\\Screen Recordings\\\\Screen Recording 2026-07-05 153737.mp4\")",
+      "Bash(xargs grep -ln \"touchMultiplier\")",
+      "Bash(git -C \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\" status)",
+      "Bash(git -C \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\" diff src/components/WorkSection.tsx)",
+      "Bash(git -C \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\" log --oneline -5)",
+      "Bash(git -C \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\" add src/components/WorkSection.tsx src/components/HamburgerButton.tsx src/components/ui/proximity-text.tsx src/components/ui/text-cursor-proximity.tsx src/components/ContactModal.tsx src/components/ContactSection.tsx src/components/CursorScroll.tsx src/components/Navbar.tsx src/components/Preloader.tsx src/components/VideoLightbox.tsx src/components/AboutSection.tsx src/cinematic/CameraLayers.tsx src/cinematic/CinematicScrollLayer.tsx src/cinematic/lenisStore.ts src/cinematic/useLenis.ts src/context/ src/hooks/ src/locales/ src/index.css src/App.tsx index.html)",
+      "Bash(git -C \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\" rm src/components/preloaderRevealEvent.ts)",
+      "Bash(git -C 'C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web' commit -m ' *)",
+      "Bash(git -C \"C:\\\\Users\\\\tituk\\\\Documents\\\\Claude_projects\\\\Portfolio-web\" push origin main)",
+      "Bash(cat vite.config.ts)",
+      "Bash(cat vite.config.js)",
+      "Bash(grep -rn \"react-router\\\\|BrowserRouter\\\\|createBrowserRouter\" src package.json)",
+      "Bash(ls vercel.json)",
+      "Bash(grep -rn \"['\\\\\"]\\\\.\\\\./\\\\|['\\\\\"]\\\\./\" src --include=*.tsx --include=*.ts)",
+      "Bash(git status *)",
+      "Bash(git rm *)",
+      "Bash(npm run *)"
     ]
   }
 }

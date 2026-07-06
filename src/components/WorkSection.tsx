@@ -383,7 +383,7 @@ export default function WorkSection() {
               ref={(el) => { panelRefs.current[0] = el }}
               className="intro-panel relative flex w-full shrink-0 flex-col justify-center border-b border-white/10 px-6 py-24 sm:px-10 md:h-dvh md:w-screen md:border-b-0 md:border-r md:px-14 md:py-0 lg:px-20"
             >
-              <div className="mx-auto w-full max-w-2xl">
+              <div className="mx-auto w-full max-w-2xl text-center md:text-left">
                 <IntroCopy />
               </div>
             </div>
@@ -456,10 +456,10 @@ export default function WorkSection() {
 
                   {/* Caption — title + link in one horizontal row, description below. */}
                   <div className="mt-8 text-center md:mt-20 md:text-left">
-                    <div className="flex items-center justify-center gap-6 md:justify-between">
+                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 md:flex-nowrap md:justify-between">
                       <h3
                         data-sink-item
-                        className="text-xl font-normal text-white sm:text-2xl"
+                        className="shrink-0 whitespace-nowrap text-xl font-normal text-white sm:text-2xl"
                       >
                         {project.title}
                       </h3>

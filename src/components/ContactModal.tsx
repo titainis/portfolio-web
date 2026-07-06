@@ -2,14 +2,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { TiltCard } from './ui/be-ui-tilt-card'
 import { lenisStore } from '../cinematic/lenisStore'
-import Shuffle, { shufflePreset } from './ui/Shuffle'
 import { useTranslation } from '../context/LanguageContext'
 
-// ─── Formspree setup ────────────────────────────────────────────────────────
-// 1. Go to https://formspree.io and create a free account
-// 2. Create a new form pointing to titasgr0228@gmail.com
-// 3. Copy the form ID (e.g. "xabc1234") and replace the placeholder below
-const FORMSPREE_ID = 'YOUR_FORM_ID'
+// Formspree form ID — submissions POST straight to https://formspree.io/f/<id>,
+// which forwards them to the email configured on formspree.io.
+const FORMSPREE_ID = 'mkolewwy'
 
 interface ContactModalProps {
   open: boolean
@@ -22,6 +19,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
   const { t } = useTranslation()
   const [form, setForm] = useState({ name: '', email: '', details: '' })
   const [status, setStatus] = useState<Status>('idle')
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof form, boolean>>>({})
 
   // Lock / unlock Lenis scroll while modal is open
   useEffect(() => {
@@ -33,6 +31,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
       const timeoutId = setTimeout(() => {
         setStatus('idle')
         setForm({ name: '', email: '', details: '' })
+        setErrors({})
       }, 300)
       return () => clearTimeout(timeoutId)
     }
@@ -48,14 +47,16 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (FORMSPREE_ID === 'YOUR_FORM_ID') {
-      // Fallback: open mailto when Formspree isn't configured yet
-      const subject = encodeURIComponent(`Project request from ${form.name}`)
-      const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\n${form.details}`)
-      window.open(`mailto:titasgr0228@gmail.com?subject=${subject}&body=${body}`)
-      setStatus('success')
+    const nextErrors = {
+      name: !form.name.trim(),
+      email: !form.email.trim(),
+      details: !form.details.trim(),
+    }
+    if (Object.values(nextErrors).some(Boolean)) {
+      setErrors(nextErrors)
       return
     }
+    setErrors({})
     setStatus('loading')
     try {
       const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
@@ -69,8 +70,10 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
     }
   }
 
-  const set = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const set = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(f => ({ ...f, [field]: e.target.value }))
+    setErrors(er => (er[field] ? { ...er, [field]: false } : er))
+  }
 
   return (
     <AnimatePresence>
@@ -113,23 +116,20 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               exit={{ opacity: 0, rotateX: -80, y: -12 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
-            <TiltCard max={5} className="bg-[#0b1220] border border-white/10 p-8 sm:p-10">
+            <TiltCard max={5} className="bg-black border border-white/10 p-8 sm:p-10">
 
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-5 right-5 border border-dashed border-white/25 p-0 transition-colors hover:border-white/50"
+                aria-label={t('modal.close')}
+                className="absolute top-5 right-5 flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               >
-                <Shuffle
-                  text={`${t('modal.close')} ×`}
-                  {...shufflePreset}
-                  className="inline-block px-3 py-1.5 text-[10px] font-medium tracking-[0.22em] text-white/45 cursor-pointer"
-                />
+                <span aria-hidden className="text-lg leading-none">&times;</span>
               </button>
 
               {/* Heading */}
               <div className="mb-8">
-                <p className="mb-2 text-[10px] tracking-[0.32em] text-white/35">{t('modal.getInTouch')}</p>
+                <p className="mb-2 text-xs tracking-[0.32em] text-white/35">{t('modal.getInTouch')}</p>
                 <h2 className="text-[2.4rem] font-bold leading-[0.95] text-white">
                   {t('modal.headingLine1')}<br />{t('modal.headingLine2')}
                 </h2>
@@ -138,81 +138,82 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               {/* Success state */}
               {status === 'success' ? (
                 <div className="flex flex-col gap-3 py-6">
-                  <p className="text-white/90 text-sm tracking-wide">
+                  <p className="text-white/90 text-base tracking-wide">
                     {t('modal.successMessage')}
                   </p>
                   <button
                     onClick={onClose}
-                    className="mt-4 w-full border border-white/20 py-3 text-[10px] font-medium tracking-[0.25em] text-white/60 transition-colors hover:border-white/40 hover:text-white/90"
+                    className="mt-4 w-full border border-white/20 py-3 text-xs font-medium tracking-[0.25em] text-white/60 transition-colors hover:border-white/40 hover:text-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                   >
                     {t('modal.close')}
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} noValidate className="space-y-4">
                   {/* NAME */}
                   <div>
-                    <label className="mb-2 block text-[10px] tracking-[0.25em] text-white/35">
+                    <label className="mb-2 block text-xs tracking-[0.25em] text-white/35">
                       {t('modal.nameLabel')}
                     </label>
                     <input
                       type="text"
-                      required
                       value={form.name}
                       onChange={set('name')}
                       placeholder={t('modal.namePlaceholder')}
-                      className="w-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none transition-colors"
+                      className={`w-full border bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-white/20 focus:outline-none transition-colors ${errors.name ? 'border-red-400/60 focus:border-red-400/60' : 'border-white/10 focus:border-white/30'}`}
                     />
+                    {errors.name && (
+                      <p className="mt-1.5 text-xs tracking-wide text-red-400/80">{t('modal.required')}</p>
+                    )}
                   </div>
 
                   {/* EMAIL */}
                   <div>
-                    <label className="mb-2 block text-[10px] tracking-[0.25em] text-white/35">
+                    <label className="mb-2 block text-xs tracking-[0.25em] text-white/35">
                       {t('modal.emailLabel')}
                     </label>
                     <input
                       type="email"
-                      required
                       value={form.email}
                       onChange={set('email')}
                       placeholder={t('modal.emailPlaceholder')}
-                      className="w-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none transition-colors"
+                      className={`w-full border bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-white/20 focus:outline-none transition-colors ${errors.email ? 'border-red-400/60 focus:border-red-400/60' : 'border-white/10 focus:border-white/30'}`}
                     />
+                    {errors.email && (
+                      <p className="mt-1.5 text-xs tracking-wide text-red-400/80">{t('modal.required')}</p>
+                    )}
                   </div>
 
                   {/* PROJECT DETAILS */}
                   <div>
-                    <label className="mb-2 block text-[10px] tracking-[0.25em] text-white/35">
+                    <label className="mb-2 block text-xs tracking-[0.25em] text-white/35">
                       {t('modal.detailsLabel')}
                     </label>
                     <textarea
-                      required
                       rows={4}
                       value={form.details}
                       onChange={set('details')}
                       placeholder={t('modal.detailsPlaceholder')}
-                      className="w-full resize-none border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none transition-colors"
+                      className={`w-full resize-none border bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-white/20 focus:outline-none transition-colors ${errors.details ? 'border-red-400/60 focus:border-red-400/60' : 'border-white/10 focus:border-white/30'}`}
                     />
+                    {errors.details && (
+                      <p className="mt-1.5 text-xs tracking-wide text-red-400/80">{t('modal.required')}</p>
+                    )}
                   </div>
 
                   {status === 'error' && (
-                    <p className="text-[11px] tracking-wide text-red-400/80">
+                    <p className="text-xs tracking-wide text-red-400/80">
                       {t('modal.errorMessage')}
                     </p>
                   )}
 
-                  {/* CTA */}
+                  {/* CTA — filled white, inverts to black on hover/focus. */}
                   <button
                     type="submit"
                     disabled={status === 'loading'}
-                    className={`mt-1 w-full bg-white p-0 transition-opacity disabled:opacity-50 ${status === 'loading' ? 'pointer-events-none' : ''}`}
+                    className={`mt-1 w-full border border-white bg-white py-3.5 text-xs font-medium tracking-[0.28em] text-black transition-colors duration-300 hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${status === 'loading' ? 'pointer-events-none' : ''}`}
                   >
-                    <Shuffle
-                      text={status === 'loading' ? t('modal.sending') : t('modal.submit')}
-                      {...shufflePreset}
-                      textAlign="center"
-                      className="block py-3.5 text-[10px] font-medium tracking-[0.28em] text-[#0b1220] cursor-pointer"
-                    />
+                    {status === 'loading' ? t('modal.sending') : t('modal.submit')}
                   </button>
                 </form>
               )}
