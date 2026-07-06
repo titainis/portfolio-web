@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import ProximityText from './ui/proximity-text'
+import { TextReveal } from './ui/cascade-text'
 import HamburgerButton from './HamburgerButton'
 import { lenisStore } from '../cinematic/lenisStore'
 import { useTranslation } from '../context/LanguageContext'
@@ -117,7 +117,7 @@ export default function Navbar({ onContactOpen }: Props) {
   return (
     <nav
       ref={navRef}
-      className="fixed top-0 right-0 z-[40] flex items-center gap-5 p-6"
+      className="fixed top-0 right-0 z-[40] flex items-center gap-3 p-4 sm:gap-5 sm:p-6"
       style={{
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? 'auto' : 'none',
@@ -126,27 +126,38 @@ export default function Navbar({ onContactOpen }: Props) {
     >
       {/* Collapsed to zero width behind the icon; expands leftward (the nav
           is right-anchored, so growth reads as sliding out to the left)
-          rather than a full-screen overlay. */}
+          rather than a full-screen overlay. maxWidth is clamped to the
+          viewport (minus this row's own padding) so the longest Lithuanian
+          labels can never overflow past the left edge of the screen and get
+          silently clipped there. */}
       <ul
-        className="flex items-center gap-6 overflow-hidden"
+        className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 overflow-hidden sm:flex-nowrap sm:gap-x-6"
         style={{
-          maxWidth: open ? '480px' : '0px',
+          // Reserves room for this row's own padding + gaps + the language
+          // toggle + hamburger (~9rem at the mobile scale) so the cap itself
+          // never invites overflow; flex-wrap above is the backstop for
+          // whatever that estimate still doesn't cover (e.g. the longest
+          // Lithuanian labels on the very smallest phones).
+          maxWidth: open ? 'min(480px, calc(100vw - 9rem))' : '0px',
           opacity: open ? 1 : 0,
           transition:
             'max-width 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease',
         }}
       >
         {navItems.map(({ key, target, pinId }) => (
-          <li key={key} className="whitespace-nowrap">
+          <li key={key} className="whitespace-nowrap text-sm sm:text-xl">
             <a
               href={target ?? '#'}
               onClick={(e) => { e.preventDefault(); handleClick(target, pinId) }}
             >
-              <ProximityText
+              <TextReveal
+                as="span"
                 text={t(`nav.${key}`)}
-                radius={80}
-                className="text-xl font-extrabold tracking-[0.22em] cursor-pointer"
-                style={{ color: textColor }}
+                fontSize="inherit"
+                color={textColor}
+                hoverColor={textColor}
+                style={{ padding: 0 }}
+                className="!tracking-[0.12em] sm:!tracking-[0.22em]"
               />
             </a>
           </li>

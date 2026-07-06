@@ -43,7 +43,7 @@ export default function Preloader() {
         counterEl.textContent = String(Math.floor(counter.value))
       },
     })
-      .to(content, { autoAlpha: 0, duration: 0.3 }, '<')
+      .to(content, { autoAlpha: 0, duration: 0.3 })
       .to(leftHalf, { x: '-100%', duration: 1.2, ease: 'power4.inOut' }, '<')
       .to(rightHalf, { x: '100%', duration: 1.2, ease: 'power4.inOut' }, '<')
 

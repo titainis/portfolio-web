@@ -10,10 +10,7 @@
     "scroll": "SCROLL"
   },
   "about": {
-    "intro1": "Building digital experiences that matter.",
-    "intro2": "I create modern, scalable web applications with clean code, eyecatching interfaces, and reliable",
-    "intro3": "performance built to be maintainable, efficient,",
-    "intro4": "and ready for real-world use. before a single line of code is written.",
+    "intro": "Building digital experiences that matter. I create modern, scalable web applications with clean code, eyecatching interfaces, and reliable performance built to be maintainable, efficient, and ready for real-world use. before a single line of code is written.",
     "tagline": "Thoughtful design. Reliable development.",
     "whatWeDo": "What We Do",
     "services": {

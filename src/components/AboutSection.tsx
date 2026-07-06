@@ -51,17 +51,8 @@ export default function AboutSection() {
 
         {/* ── INTRO ─────────────────────────────────────────────────────── */}
         <div ref={introRef} className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem] text-black md:text-2xl">
-          <span data-sink-item className="block">
-            {t('about.intro1')}
-          </span>
-          <span data-sink-item className="block">
-            {t('about.intro2')}
-          </span>
-          <span data-sink-item className="block">
-            {t('about.intro3')}
-          </span>
-          <span data-sink-item className="block">
-            {t('about.intro4')}
+          <span data-sink-item className="block text-balance">
+            {t('about.intro')}
           </span>
 
           <span data-sink-item className="mt-20 block">{t('about.tagline')}</span>

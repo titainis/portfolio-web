@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { TiltCard } from './ui/be-ui-tilt-card'
+import { TextReveal } from './ui/cascade-text'
 import { lenisStore } from '../cinematic/lenisStore'
 import { useTranslation } from '../context/LanguageContext'
 
@@ -207,13 +208,23 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                     </p>
                   )}
 
-                  {/* CTA — filled white, inverts to black on hover/focus. */}
+                  {/* CTA — filled white, inverts to black on hover/focus; the
+                      cascade text flip syncs its color with the bg invert so
+                      the label always stays legible. */}
                   <button
                     type="submit"
                     disabled={status === 'loading'}
-                    className={`mt-1 w-full border border-white bg-white py-3.5 text-xs font-medium tracking-[0.28em] text-black transition-colors duration-300 hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${status === 'loading' ? 'pointer-events-none' : ''}`}
+                    className={`mt-1 w-full overflow-hidden border border-white bg-white py-3.5 text-xs transition-colors duration-300 hover:bg-black disabled:opacity-50 disabled:hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${status === 'loading' ? 'pointer-events-none' : ''}`}
                   >
-                    {status === 'loading' ? t('modal.sending') : t('modal.submit')}
+                    <TextReveal
+                      as="span"
+                      text={status === 'loading' ? t('modal.sending') : t('modal.submit')}
+                      fontSize="inherit"
+                      color="#000000"
+                      hoverColor="#ffffff"
+                      className="!flex !w-full !justify-center"
+                      style={{ padding: 0, letterSpacing: '0.28em' }}
+                    />
                   </button>
                 </form>
               )}

@@ -3,7 +3,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CustomEase } from 'gsap/CustomEase'
 import VideoLightbox from './VideoLightbox'
-import ProximityText from './ui/proximity-text'
+import { TextReveal } from './ui/cascade-text'
 import { CONTACT_REVEALED } from './contactRevealEvent'
 import { useTranslation } from '../context/LanguageContext'
 
@@ -469,9 +469,16 @@ export default function WorkSection() {
                           href={project.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
+                          className="inline-flex shrink-0 items-center gap-2 text-xs"
                         >
-                          <ProximityText text={t('work.explore')} radius={60} />
+                          <TextReveal
+                            as="span"
+                            text={t('work.explore')}
+                            fontSize="inherit"
+                            color="rgba(255,255,255,0.5)"
+                            hoverColor="#ffffff"
+                            style={{ padding: 0, letterSpacing: '0.2em' }}
+                          />
                           <span aria-hidden>&rarr;</span>
                         </a>
                       )}

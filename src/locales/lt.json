@@ -10,10 +10,7 @@
     "scroll": "SLINKTI"
   },
   "about": {
-    "intro1": "Kuriu skaitmenines patirtis, kurios turi prasmę.",
-    "intro2": "Kuriu modernias, plečiamas svetaines ir programas su tvarkingu kodu, patraukliomis sąsajomis ir patikimu",
-    "intro3": "veikimu — lengvai palaikomu, efektyviu,",
-    "intro4": "ir paruoštu realiam naudojimui. dar prieš parašant pirmą kodo eilutę.",
+    "intro": "Kuriu skaitmenines patirtis, kurios turi prasmę. Kuriu modernias, plečiamas svetaines ir programas su tvarkingu kodu, patraukliomis sąsajomis ir patikimu veikimu lengvai palaikomu, efektyviu ir paruoštu realiam naudojimui. dar prieš parašant pirmą kodo eilutę.",
     "tagline": "Apgalvotas dizainas. Patikimas kūrimas.",
     "whatWeDo": "Ką kuriu",
     "services": {

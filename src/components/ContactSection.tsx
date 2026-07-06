@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import ProximityText from './ui/proximity-text'
+import { TextReveal } from './ui/cascade-text'
 import { useTranslation } from '../context/LanguageContext'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -81,12 +81,15 @@ export default function ContactSection({ onContactOpen }: Props) {
         <button
           type="button"
           onClick={onContactOpen}
-          className="group mt-8 inline-flex w-fit items-center gap-2 border-b border-black/30 pb-1 transition-colors hover:border-black"
+          className="group mt-8 inline-flex w-fit items-center gap-2 border-b border-black/30 pb-1 text-xs transition-colors hover:border-black"
         >
-          <ProximityText
+          <TextReveal
+            as="span"
             text={t('contact.cta')}
-            radius={70}
-            className="text-xs font-medium uppercase tracking-[0.2em] text-black"
+            fontSize="inherit"
+            color="#000000"
+            hoverColor="#000000"
+            style={{ padding: 0, letterSpacing: '0.2em' }}
           />
           <span aria-hidden>&rarr;</span>
         </button>
@@ -104,11 +107,14 @@ export default function ContactSection({ onContactOpen }: Props) {
             <p className="mb-2 text-[10px] uppercase tracking-[0.25em] text-black/40">
               {t('contact.businessEnquiry')}
             </p>
-            <a href="mailto:titasgr0228@gmail.com" className="inline-block">
-              <ProximityText
+            <a href="mailto:titasgr0228@gmail.com" className="inline-block text-sm">
+              <TextReveal
+                as="span"
                 text="titasgr0228@gmail.com"
-                radius={60}
-                className="text-sm text-black"
+                fontSize="inherit"
+                color="#000000"
+                hoverColor="#000000"
+                style={{ padding: 0, letterSpacing: 'normal', textTransform: 'none' }}
               />
             </a>
           </div>
@@ -120,9 +126,16 @@ export default function ContactSection({ onContactOpen }: Props) {
               href="https://www.linkedin.com/in/titas-g-4466b135b"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block"
+              className="inline-block text-sm"
             >
-              <ProximityText text={t('contact.linkedin')} radius={60} className="text-sm text-black" />
+              <TextReveal
+                as="span"
+                text={t('contact.linkedin')}
+                fontSize="inherit"
+                color="#000000"
+                hoverColor="#000000"
+                style={{ padding: 0, letterSpacing: 'normal', textTransform: 'none' }}
+              />
             </a>
           </div>
         </div>
