@@ -2,36 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CustomEase } from 'gsap/CustomEase'
+import { useTranslation } from '../context/LanguageContext'
 
 gsap.registerPlugin(ScrollTrigger, CustomEase)
 CustomEase.create('workSinkIn', '0.16, 1, 0.3, 1')
 
-const services = [
-  {
-    n: '01',
-    title: 'Web Development',
-    body: 'Fast, modern websites built to convert.',
-  },
-  {
-    n: '02',
-    title: 'E-Commerce',
-    body: 'Stores that sell, optimised for revenue.',
-  },
-  {
-    n: '03',
-    title: 'Web Applications',
-    body: 'Simple, powerful tools your team will use.',
-  },
-  {
-    n: '04',
-    title: 'AI Solutions',
-    body: 'AI features woven directly into your product.',
-  },
-]
+const serviceKeys = ['webDev', 'ecommerce', 'webApps', 'aiSolutions'] as const
 
 export default function AboutSection() {
   const [hovered, setHovered] = useState<number | null>(null)
   const introRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
+  const services = serviceKeys.map((key) => ({
+    n: key,
+    title: t(`about.services.${key}.title`),
+    body: t(`about.services.${key}.body`),
+  }))
 
   useEffect(() => {
     const intro = introRef.current
@@ -51,7 +37,7 @@ export default function AboutSection() {
         scrollTrigger: {
           trigger: intro,
           start: 'top 85%',
-          toggleActions: 'play reverse play reverse',
+          toggleActions: 'play none none none',
         },
       })
     })
@@ -66,20 +52,19 @@ export default function AboutSection() {
         {/* ── INTRO ─────────────────────────────────────────────────────── */}
         <div ref={introRef} className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem] text-black md:text-2xl">
           <span data-sink-item className="block">
-            We're a small studio with an outsized obsession for the details —
+            {t('about.intro1')}
           </span>
           <span data-sink-item className="block">
-            from the first wireframe to the final deploy.
+            {t('about.intro2')}
           </span>
           <span data-sink-item className="block">
-            Every project starts with listening: your users, your constraints,
-            your ambitions,
+            {t('about.intro3')}
           </span>
           <span data-sink-item className="block">
-            before a single line of code is written.
+            {t('about.intro4')}
           </span>
 
-          <span data-sink-item className="mt-20 block">Fighting for authenticity making the difference</span>
+          <span data-sink-item className="mt-20 block">{t('about.tagline')}</span>
         </div>
 
         {/* Spacer between the intro description and the "what we build" list */}
@@ -88,9 +73,14 @@ export default function AboutSection() {
         {/* ── WHAT WE DO ─────────────────────────────────────────────── */}
         <div className="relative">
 
-          <div className="relative z-10 pl-[32vw] pr-[10vw] md:pl-[32vw] md:pr-[12vw]">
+          {/* The 32vw indent is a desktop layout device (it's also where the
+              hover text sits at -32vw, offscreen to the left) — on mobile
+              there's no hover reveal to make room for, and eating a third of
+              a phone's width left nothing for longer (esp. Lithuanian)
+              service titles. */}
+          <div className="relative z-10 px-6 sm:px-10 md:pl-[32vw] md:pr-[12vw]">
             <span className="text-2xl font-extrabold tracking-[0.20em]">
-              What We Do
+              {t('about.whatWeDo')}
             </span>
 
             <ul className="mt-20 flex flex-col items-start gap-8 md:gap-10">
@@ -117,13 +107,13 @@ export default function AboutSection() {
 
                     {/* TITLE CONTAINER — invisible ghost holds width when title fades out */}
                     <span className="relative inline-block">
-                      <span className="invisible whitespace-nowrap text-2xl md:text-3xl" aria-hidden="true">
+                      <span className="invisible text-2xl md:whitespace-nowrap md:text-3xl" aria-hidden="true">
                         {s.title}
                       </span>
 
                       {/* ORIGINAL TITLE — fades OUT in place */}
                       <span
-                        className="absolute inset-0 whitespace-nowrap text-2xl text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:text-2xl"
+                        className="absolute inset-0 text-2xl text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:whitespace-nowrap md:text-2xl"
                         style={{
                           fontWeight: 400,
                           opacity: isHovered ? 0 : 1,

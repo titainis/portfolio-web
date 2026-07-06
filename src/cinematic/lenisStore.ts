@@ -9,7 +9,7 @@ export const lenisStore = {
     _instance = l
   },
   scrollTo(target: string | number | HTMLElement) {
-    _instance?.scrollTo(target as string, {
+    _instance?.scrollTo(target, {
       duration: 1.4,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     })

@@ -33,19 +33,27 @@ export default function CameraLayers({
   // (fixed children escape overflow clipping — absolute children do not).
   return (
     <div className="cinematic-layers-wrapper">
+      {/* Mobile sees only this: a static, full-screen mountain photo — no
+          zoom, no fly-through. Always in the DOM (mouse-parallax/scroll-timeline
+          refs need a stable node) but visually hidden isn't needed since it's
+          shared with desktop; only the train/haze "window" layers are
+          desktop-only. */}
       <div
         ref={landscapeRef}
-        className="cinema-landscape"
+        className="cinema-landscape block"
         style={
           LANDSCAPE_IMAGE
             ? { backgroundImage: `url(${LANDSCAPE_IMAGE})` }
             : undefined
         }
       />
-      <div ref={hazeRef} className="camera-haze" aria-hidden />
+      {/* Train window + atmospheric haze are the scroll-driven "fly through
+          the window" effect — desktop only. Hidden below md so mobile users
+          never see or scroll into the train view. */}
+      <div ref={hazeRef} className="camera-haze hidden md:block" aria-hidden />
       <div
         ref={trainRef}
-        className={`cinema-train${TRAIN_IMAGE ? '' : ' cinema-train--fallback'}`}
+        className={`cinema-train hidden md:block${TRAIN_IMAGE ? '' : ' cinema-train--fallback'}`}
         style={
           TRAIN_IMAGE ? { backgroundImage: `url(${TRAIN_IMAGE})` } : undefined
         }

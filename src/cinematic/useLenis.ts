@@ -20,6 +20,10 @@ export function useLenis() {
       duration: 1.2,
       smoothWheel: true,
       wheelMultiplier: 1,
+      // Touch scrolling stays native (no syncTouch) so mobile gestures are
+      // never blocked; this only scales the momentum Lenis reads back from
+      // that native scroll, so flicks don't feel sluggish.
+      touchMultiplier: 1.8,
     })
     lenisRef.current = lenis
     lenisStore.set(lenis)

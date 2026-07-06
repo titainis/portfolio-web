@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from '../context/LanguageContext'
 
 export default function CursorScroll() {
+  const { t } = useTranslation()
   const spanRef = useRef<HTMLSpanElement>(null)
   const [visible, setVisible] = useState(true)
 
@@ -59,7 +61,7 @@ export default function CursorScroll() {
         transition: 'opacity 0.5s ease',
       }}
     >
-      SCROLL
+      {t('hero.scroll')}
     </span>
   )
 }

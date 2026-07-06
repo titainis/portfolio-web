@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "about": "APIE",
+    "work": "DARBAI",
+    "contact": "SUSISIEKITE",
+    "openMenu": "Atidaryti meniu",
+    "closeMenu": "Uždaryti meniu"
+  },
+  "hero": {
+    "scroll": "SLINKTI"
+  },
+  "about": {
+    "intro1": "Kuriu skaitmenines patirtis, kurios turi prasmę.",
+    "intro2": "Kuriu modernias, plečiamas svetaines ir programas su tvarkingu kodu, patraukliomis sąsajomis ir patikimu",
+    "intro3": "veikimu — lengvai palaikomu, efektyviu,",
+    "intro4": "ir paruoštu realiam naudojimui. dar prieš parašant pirmą kodo eilutę.",
+    "tagline": "Apgalvotas dizainas. Patikimas kūrimas.",
+    "whatWeDo": "Ką kuriu",
+    "services": {
+      "webDev": { "title": "Svetainių kūrimas", "body": "Greitos, modernios svetainės, kuriamos konversijoms." },
+      "ecommerce": { "title": "El. parduotuvės", "body": "Parduotuvės, kurios parduoda — optimizuotos pajamoms." },
+      "webApps": { "title": "Žiniatinklio programos", "body": "Paprasti, galingi įrankiai, kuriuos mėgs jūsų komanda." },
+      "aiSolutions": { "title": "DI sprendimai", "body": "DI funkcijos, integruotos tiesiai į jūsų produktą." }
+    }
+  },
+  "work": {
+    "introLine1": "Išrinkti darbai",
+    "introLine2": "ir projektai",
+    "explore": "Peržiūrėti projektą",
+    "watch": "ŽIŪRĖTI",
+    "playAria": "Paleisti {title} pristatymo vaizdo įrašą",
+    "projects": {
+      "moviePage": { "title": "Filmų Puslapis", "body": "Elegantiška filmų paieškos svetainė su švaria, turiniu paremta sąsaja." },
+      "karateClub": { "title": "Karate Klubas Alfa", "body": "Nukreipimo puslapis, pristatantis karatė klubo programas ir tvarkaraštį." },
+      "folidify": { "title": "Folidify", "body": "Atsisiunčiama darbalaukio programa, naudojanti DI vietiniams failams ieškoti, tvarkyti ir valdyti." }
+    }
+  },
+  "contact": {
+    "tagline": "Sukurkime kažką, ką verta paleisti.",
+    "headingLine1": "Norite dirbti",
+    "headingLine2": "prie kažko drąsaus?",
+    "cta": "Pradėkime bendradarbiavimą",
+    "copyright": "©Titas 2026",
+    "businessEnquiry": "Verslo užklausos",
+    "social": "Socialiniai tinklai",
+    "linkedin": "LinkedIn"
+  },
+  "modal": {
+    "close": "UŽDARYTI",
+    "getInTouch": "SUSISIEKITE",
+    "headingLine1": "PRADĖKIME",
+    "headingLine2": "PROJEKTĄ",
+    "nameLabel": "VARDAS",
+    "namePlaceholder": "Jūsų vardas",
+    "emailLabel": "EL. PAŠTAS",
+    "emailPlaceholder": "jūsų@pastas.lt",
+    "detailsLabel": "PROJEKTO DETALĖS",
+    "detailsPlaceholder": "Papasakokite apie savo projektą — ką kuriate, kokie terminai ir biudžetas.",
+    "successMessage": "Jūsų užklausa jau pakeliui — netrukus susisieksime.",
+    "errorMessage": "Kažkas nutiko ne taip — bandykite dar kartą.",
+    "sending": "SIUNČIAMA…",
+    "submit": "Pateikti"
+  },
+  "videoLightbox": {
+    "aria": "Vaizdo įrašo leistuvas",
+    "closeHint": "Spustelėkite bet kur arba paspauskite Escape, kad uždarytumėte."
+  }
+}

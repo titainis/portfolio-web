@@ -1,16 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { lenisStore } from '../cinematic/lenisStore'
-import { PRELOADER_REVEALED } from './preloaderRevealEvent'
 
-// The very first thing shown on entering the site: the wordmark split apart
-// by a large 0→100 counter running between the two halves, then two white
-// panels physically slide apart (left panel exits left, right panel exits
-// right) to reveal the page underneath (the mountain/train hero, already
-// sitting at full opacity behind this overlay, "loads in" as the panels
-// clear the viewport). Sits above everything (including ContactModal's
-// z-[200]) and freezes scroll while it's up so there's nothing to see moving
-// behind it.
+// The very first thing shown on entering the site: a large 0→100 counter,
+// then two white panels physically slide apart (left panel exits left,
+// right panel exits right) to reveal the page underneath (the mountain/train
+// hero, already sitting at full opacity behind this overlay, "loads in" as
+// the panels clear the viewport). Sits above everything (including
+// ContactModal's z-[200]) and freezes scroll while it's up so there's
+// nothing to see moving behind it.
 export default function Preloader() {
   const [mounted, setMounted] = useState(true)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -45,9 +43,6 @@ export default function Preloader() {
         counterEl.textContent = String(Math.floor(counter.value))
       },
     })
-      // Fired the instant the panels start sliding (not once they finish),
-      // so the hero's own reveal is in lockstep with the split opening.
-      .call(() => window.dispatchEvent(new Event(PRELOADER_REVEALED)))
       .to(content, { autoAlpha: 0, duration: 0.3 }, '<')
       .to(leftHalf, { x: '-100%', duration: 1.2, ease: 'power4.inOut' }, '<')
       .to(rightHalf, { x: '100%', duration: 1.2, ease: 'power4.inOut' }, '<')
@@ -67,15 +62,9 @@ export default function Preloader() {
     >
       <div ref={leftHalfRef} className="absolute top-0 left-0 w-1/2 h-full bg-white" />
       <div ref={rightHalfRef} className="absolute top-0 right-0 w-1/2 h-full bg-white" />
-      <div ref={contentRef} className="relative z-10 flex items-baseline gap-10 sm:gap-16">
-        <span className="text-sm font-bold uppercase tracking-wide text-black sm:text-base">
-          Link
-        </span>
+      <div ref={contentRef} className="relative z-10">
         <span className="text-5xl font-bold leading-none text-black sm:text-7xl">
           <span ref={counterRef}>0</span>
-        </span>
-        <span className="text-sm font-bold uppercase tracking-wide text-black sm:text-base">
-          Flow
         </span>
       </div>
     </div>

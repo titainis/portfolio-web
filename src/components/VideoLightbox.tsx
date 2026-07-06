@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { lenisStore } from '../cinematic/lenisStore'
+import { useTranslation } from '../context/LanguageContext'
 
 /**
  * Premium "theater" video popup with a Hero (shared-element) transition.
@@ -92,6 +93,7 @@ export default function VideoLightbox({
   originEl,
   onClose,
 }: VideoLightboxProps) {
+  const { t } = useTranslation()
   const prefersReduced = useRef(
     typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -341,11 +343,11 @@ export default function VideoLightbox({
       className="fixed inset-0 z-[200]"
       role="dialog"
       aria-modal="true"
-      aria-label="Video player"
+      aria-label={t('videoLightbox.aria')}
       onClick={beginClose}
       style={{ cursor: hasFinePointer && !prefersReduced ? 'none' : 'pointer' }}
     >
-      <span className="sr-only">Click anywhere, or press Escape, to close.</span>
+      <span className="sr-only">{t('videoLightbox.closeHint')}</span>
 
       {/* Dark, blurred backdrop — page stays visible behind it. */}
       <div

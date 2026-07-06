@@ -164,13 +164,22 @@ html.lenis body {
 }
 
 /* Transparent in-flow spacer that gives phase 1 its scroll length. The fixed
-   cinematic layers remain visible through it. */
+   cinematic layers remain visible through it. On mobile the train/zoom
+   timeline never runs (see CinematicScrollLayer.tsx), so the mountain only
+   needs one static screen before scrolling on into ABOUT; the full 400vh
+   flight-through length only applies at the `md` breakpoint and up. */
 .cinematic-phase1-spacer {
   position: relative;
   z-index: 0;
   width: 100%;
-  height: 400vh;
+  height: 100dvh;
   pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .cinematic-phase1-spacer {
+    height: 400vh;
+  }
 }
 
 /* The video popup (Hero shared-element transition) is fully self-contained in

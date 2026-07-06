@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "about": "ABOUT",
+    "work": "WORK",
+    "contact": "CONTACT",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "scroll": "SCROLL"
+  },
+  "about": {
+    "intro1": "Building digital experiences that matter.",
+    "intro2": "I create modern, scalable web applications with clean code, eyecatching interfaces, and reliable",
+    "intro3": "performance built to be maintainable, efficient,",
+    "intro4": "and ready for real-world use. before a single line of code is written.",
+    "tagline": "Thoughtful design. Reliable development.",
+    "whatWeDo": "What We Do",
+    "services": {
+      "webDev": { "title": "Web Development", "body": "Fast, modern websites built to convert." },
+      "ecommerce": { "title": "E-Commerce", "body": "Stores that sell, optimised for revenue." },
+      "webApps": { "title": "Web Applications", "body": "Simple, powerful tools your team will use." },
+      "aiSolutions": { "title": "AI Solutions", "body": "AI features woven directly into your product." }
+    }
+  },
+  "work": {
+    "introLine1": "Selected work",
+    "introLine2": "& projects",
+    "explore": "Explore project",
+    "watch": "WATCH",
+    "playAria": "Play {title} showcase video",
+    "projects": {
+      "moviePage": { "title": "Movie Page", "body": "A sleek movie discovery site with a clean, content-first interface." },
+      "karateClub": { "title": "Karate Club Alfa", "body": "A landing page introducing a karate club's programs and schedule." },
+      "folidify": { "title": "Folidify", "body": "A downloadable desktop app that uses AI to search, organize, and manage local files." }
+    }
+  },
+  "contact": {
+    "tagline": "Let's build something worth shipping.",
+    "headingLine1": "Want to work",
+    "headingLine2": "on something bold?",
+    "cta": "Start a collaboration",
+    "copyright": "©Titas 2026",
+    "businessEnquiry": "Business Enquiry",
+    "social": "Social",
+    "linkedin": "LinkedIn"
+  },
+  "modal": {
+    "close": "CLOSE",
+    "getInTouch": "GET IN TOUCH",
+    "headingLine1": "START A",
+    "headingLine2": "PROJECT",
+    "nameLabel": "NAME",
+    "namePlaceholder": "Your name",
+    "emailLabel": "EMAIL",
+    "emailPlaceholder": "your@email.com",
+    "detailsLabel": "PROJECT DETAILS",
+    "detailsPlaceholder": "Tell us about your project — what you're building, your timeline, and budget.",
+    "successMessage": "Your request is on its way — we'll be in touch soon.",
+    "errorMessage": "Something went wrong — please try again.",
+    "sending": "SENDING…",
+    "submit": "Submit"
+  },
+  "videoLightbox": {
+    "aria": "Video player",
+    "closeHint": "Click anywhere, or press Escape, to close."
+  }
+}

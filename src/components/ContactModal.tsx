@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { TiltCard } from './ui/be-ui-tilt-card'
 import { lenisStore } from '../cinematic/lenisStore'
 import Shuffle, { shufflePreset } from './ui/Shuffle'
+import { useTranslation } from '../context/LanguageContext'
 
 // ─── Formspree setup ────────────────────────────────────────────────────────
 // 1. Go to https://formspree.io and create a free account
@@ -18,6 +19,7 @@ interface ContactModalProps {
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
 export default function ContactModal({ open, onClose }: ContactModalProps) {
+  const { t } = useTranslation()
   const [form, setForm] = useState({ name: '', email: '', details: '' })
   const [status, setStatus] = useState<Status>('idle')
 
@@ -28,11 +30,11 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
     } else {
       lenisStore.start()
       // Reset form state after close animation settles
-      const t = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setStatus('idle')
         setForm({ name: '', email: '', details: '' })
       }, 300)
-      return () => clearTimeout(t)
+      return () => clearTimeout(timeoutId)
     }
   }, [open])
 
@@ -80,20 +82,37 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22 }}
         >
-          {/* Backdrop — heavy blur to fully obscure the scene behind */}
+          {/* Backdrop — blur radius is held constant and only opacity
+              animates. Animating the blur radius itself forces the browser
+              to resample everything behind it on every frame, which reads
+              as a laggy "catch-up" instead of a smooth transition; fading in
+              an already-blurred layer is compositor-only work and looks just
+              as much like the scene "smoothly defocusing". */}
           <motion.div
-            className="absolute inset-0 bg-black/75 backdrop-blur-3xl"
+            className="absolute inset-0 bg-black/75"
+            style={{ backdropFilter: 'blur(64px)', WebkitBackdropFilter: 'blur(64px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             onClick={onClose}
           />
 
-          {/* Card */}
+          {/* Card — folds down into place like a hinged sheet of paper,
+              instead of just fading/scaling in. Origin at the top edge +
+              perspective on the wrapper are what sell the fold: rotateX
+              alone (no perspective) would just look like a flat squash. */}
           <motion.div
             className="relative z-10 w-full max-w-[480px]"
-            initial={{ opacity: 0, y: 28, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.97 }}
-            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            style={{ perspective: 1400 }}
           >
+            <motion.div
+              style={{ transformOrigin: 'top center', transformPerspective: 1400 }}
+              initial={{ opacity: 0, rotateX: -100, y: -24 }}
+              animate={{ opacity: 1, rotateX: 0, y: 0 }}
+              exit={{ opacity: 0, rotateX: -80, y: -12 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
             <TiltCard max={5} className="bg-[#0b1220] border border-white/10 p-8 sm:p-10">
 
               {/* Close button */}
@@ -102,7 +121,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                 className="absolute top-5 right-5 border border-dashed border-white/25 p-0 transition-colors hover:border-white/50"
               >
                 <Shuffle
-                  text="CLOSE ×"
+                  text={`${t('modal.close')} ×`}
                   {...shufflePreset}
                   className="inline-block px-3 py-1.5 text-[10px] font-medium tracking-[0.22em] text-white/45 cursor-pointer"
                 />
@@ -110,9 +129,9 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
               {/* Heading */}
               <div className="mb-8">
-                <p className="mb-2 text-[10px] tracking-[0.32em] text-white/35">GET IN TOUCH</p>
+                <p className="mb-2 text-[10px] tracking-[0.32em] text-white/35">{t('modal.getInTouch')}</p>
                 <h2 className="text-[2.4rem] font-bold leading-[0.95] text-white">
-                  START A<br />PROJECT
+                  {t('modal.headingLine1')}<br />{t('modal.headingLine2')}
                 </h2>
               </div>
 
@@ -120,13 +139,13 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               {status === 'success' ? (
                 <div className="flex flex-col gap-3 py-6">
                   <p className="text-white/90 text-sm tracking-wide">
-                    Your request is on its way — we'll be in touch soon.
+                    {t('modal.successMessage')}
                   </p>
                   <button
                     onClick={onClose}
                     className="mt-4 w-full border border-white/20 py-3 text-[10px] font-medium tracking-[0.25em] text-white/60 transition-colors hover:border-white/40 hover:text-white/90"
                   >
-                    CLOSE
+                    {t('modal.close')}
                   </button>
                 </div>
               ) : (
@@ -134,14 +153,14 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   {/* NAME */}
                   <div>
                     <label className="mb-2 block text-[10px] tracking-[0.25em] text-white/35">
-                      NAME
+                      {t('modal.nameLabel')}
                     </label>
                     <input
                       type="text"
                       required
                       value={form.name}
                       onChange={set('name')}
-                      placeholder="Your name"
+                      placeholder={t('modal.namePlaceholder')}
                       className="w-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none transition-colors"
                     />
                   </div>
@@ -149,14 +168,14 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   {/* EMAIL */}
                   <div>
                     <label className="mb-2 block text-[10px] tracking-[0.25em] text-white/35">
-                      EMAIL
+                      {t('modal.emailLabel')}
                     </label>
                     <input
                       type="email"
                       required
                       value={form.email}
                       onChange={set('email')}
-                      placeholder="your@email.com"
+                      placeholder={t('modal.emailPlaceholder')}
                       className="w-full border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none transition-colors"
                     />
                   </div>
@@ -164,21 +183,21 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   {/* PROJECT DETAILS */}
                   <div>
                     <label className="mb-2 block text-[10px] tracking-[0.25em] text-white/35">
-                      PROJECT DETAILS
+                      {t('modal.detailsLabel')}
                     </label>
                     <textarea
                       required
                       rows={4}
                       value={form.details}
                       onChange={set('details')}
-                      placeholder="Tell us about your project — what you're building, your timeline, and budget."
+                      placeholder={t('modal.detailsPlaceholder')}
                       className="w-full resize-none border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-white/30 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {status === 'error' && (
                     <p className="text-[11px] tracking-wide text-red-400/80">
-                      Something went wrong — please try again.
+                      {t('modal.errorMessage')}
                     </p>
                   )}
 
@@ -189,7 +208,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                     className={`mt-1 w-full bg-white p-0 transition-opacity disabled:opacity-50 ${status === 'loading' ? 'pointer-events-none' : ''}`}
                   >
                     <Shuffle
-                      text={status === 'loading' ? 'SENDING…' : 'Submit'}
+                      text={status === 'loading' ? t('modal.sending') : t('modal.submit')}
                       {...shufflePreset}
                       textAlign="center"
                       className="block py-3.5 text-[10px] font-medium tracking-[0.28em] text-[#0b1220] cursor-pointer"
@@ -198,6 +217,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                 </form>
               )}
             </TiltCard>
+            </motion.div>
           </motion.div>
         </motion.div>
       )}

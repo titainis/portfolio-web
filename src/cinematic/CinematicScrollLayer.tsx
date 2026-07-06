@@ -5,12 +5,15 @@ import CameraLayers from './CameraLayers'
 import AboutSection from '../components/AboutSection'
 import WorkSection from '../components/WorkSection'
 import ContactSection from '../components/ContactSection'
-import { PRELOADER_REVEALED } from '../components/preloaderRevealEvent'
 import { useLenis } from './useLenis'
 import { useMouseParallax } from './useMouseParallax'
 import { buildCameraTimeline } from './scrollTimelines'
 
-export default function CinematicScrollLayer() {
+interface Props {
+  onContactOpen: () => void
+}
+
+export default function CinematicScrollLayer({ onContactOpen }: Props) {
   // Smooth-scroll engine.
   useLenis()
 
@@ -33,31 +36,19 @@ export default function CinematicScrollLayer() {
       return
     }
 
-    const ctx = gsap.context(() => {
-      buildCameraTimeline({ spacer, landscape, haze, train })
+    // The zoom/fly-through timeline is desktop-only — the train layer it
+    // animates is hidden below `md` (see CameraLayers.tsx), and mobile just
+    // shows the static mountain photo, so there's nothing to scrub there.
+    const mm = gsap.matchMedia()
+    mm.add('(min-width: 768px)', () => {
+      const tl = buildCameraTimeline({ spacer, landscape, haze, train })
+      return () => tl.scrollTrigger?.kill()
     })
 
     requestAnimationFrame(() => ScrollTrigger.refresh())
 
-    // The landscape + train window both start slightly dimmed (Preloader's
-    // white panels are covering them anyway) and brighten to full opacity in
-    // lockstep with the panels sliding apart, so the scene visibly "gains
-    // light" as the split opens rather than just sitting there fully lit.
-    // Set after buildCameraTimeline() so this overrides its initial
-    // autoAlpha: 1 on the train layer.
-    gsap.set([landscape, train], { autoAlpha: 0.5 })
-    function revealScene() {
-      gsap.to([landscape, train], {
-        autoAlpha: 1,
-        duration: 1.1,
-        ease: 'power2.out',
-      })
-    }
-    window.addEventListener(PRELOADER_REVEALED, revealScene)
-
     return () => {
-      ctx.revert()
-      window.removeEventListener(PRELOADER_REVEALED, revealScene)
+      mm.revert()
     }
   }, [])
 
@@ -82,7 +73,7 @@ export default function CinematicScrollLayer() {
       <WorkSection />
 
       {/* CONTACT — revealed as WORK slides off; plain text call-to-action. */}
-      <ContactSection />
+      <ContactSection onContactOpen={onContactOpen} />
     </>
   )
 }

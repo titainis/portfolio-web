@@ -1,91 +1,57 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import type Hls from 'hls.js'
-import { CONTACT_REVEALED } from './contactRevealEvent'
+import ProximityText from './ui/proximity-text'
+import { useTranslation } from '../context/LanguageContext'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const STREAM_URL =
-  'https://stream.mux.com/tLkHO1qZoaaQOUeVWo8hEBeGQfySP02EPS02BmnNFyXys.m3u8'
+interface Props {
+  onContactOpen: () => void
+}
 
-export default function ContactSection() {
+export default function ContactSection({ onContactOpen }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const section = sectionRef.current
     if (!section) return
 
-    // Visibility gate. A fixed section can't be hidden by the hero, because
-    // the hero is itself a stack of FIXED layers behind a transparent
-    // in-flow spacer — no static z-order can put the (opaque, permanent)
-    // landscape above this section during the intro AND below it at the
-    // reveal. So it stays hidden until the WORK cover scrolls on screen —
-    // from that point it sits safely behind WORK's opaque z-30 until the
-    // phase-2 slide uncovers it. Scrolling back above WORK re-hides it so
-    // it never bleeds through the hero or the intro layers.
-    const trigger = ScrollTrigger.create({
-      trigger: '#work',
-      start: 'top bottom',
-      onEnter: () => gsap.set(section, { autoAlpha: 1 }),
-      onLeaveBack: () => gsap.set(section, { autoAlpha: 0 }),
+    // Visibility gate — desktop only. There, a fixed section can't be hidden
+    // by the hero, because the hero is itself a stack of FIXED layers behind
+    // a transparent in-flow spacer — no static z-order can put the (opaque,
+    // permanent) landscape above this section during the intro AND below it
+    // at the reveal. So it stays hidden until the WORK cover scrolls on
+    // screen — from that point it sits safely behind WORK's opaque z-30
+    // until the phase-2 slide uncovers it. Scrolling back above WORK re-hides
+    // it so it never bleeds through the hero or the intro layers.
+    //
+    // On mobile WORK is plain in-flow markup (no pin, no slide-away — see
+    // WorkSection.tsx), so this section is plain in-flow too and just follows
+    // it in normal scroll; it needs none of this fixed/gated behaviour.
+    const mm = gsap.matchMedia()
+    mm.add('(min-width: 768px)', () => {
+      const trigger = ScrollTrigger.create({
+        trigger: '#work',
+        start: 'top bottom',
+        onEnter: () => gsap.set(section, { autoAlpha: 1 }),
+        onLeaveBack: () => gsap.set(section, { autoAlpha: 0 }),
+      })
+      return () => trigger.kill()
     })
 
-    return () => trigger.kill()
+    return () => mm.revert()
   }, [])
 
-  // Background video: loads the Mux stream in the background the whole time
-  // it's mounted, sitting invisible as a small square in the middle of the
-  // frame until CONTACT is fully reached (CONTACT_REVEALED). It then pops
-  // into view instantly at that small size and scales smoothly up to fill
-  // the screen — no loading UI, no delay, just an immediate "pop" followed
-  // by a smooth grow. Fires once; once revealed it stays visible and playing
-  // for good.
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    // hls.js is ~400 kB minified — dynamically imported so it loads as its own
-    // chunk after the main bundle instead of blocking first paint. Safari plays
-    // the stream natively and never downloads it at all.
-    let hls: Hls | null = null
-    let cancelled = false
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = STREAM_URL
-    } else {
-      import('hls.js').then(({ default: HlsLib }) => {
-        if (cancelled || !HlsLib.isSupported()) return
-        hls = new HlsLib()
-        hls.loadSource(STREAM_URL)
-        hls.attachMedia(video)
-      })
-    }
-
-    gsap.set(video, { opacity: 0, scale: 0.14 })
-
-    let revealed = false
-    let tl: gsap.core.Timeline | undefined
-
-    const reveal = () => {
-      if (revealed) return
-      revealed = true
-
-      tl = gsap.timeline()
-      tl.set(video, { opacity: 1 })
-        .call(() => video.play().catch(() => {}))
-        .to(video, { scale: 1, duration: 1.2, ease: 'power3.out' }, '<')
-    }
-
-    window.addEventListener(CONTACT_REVEALED, reveal)
-
-    return () => {
-      cancelled = true
-      tl?.kill()
-      window.removeEventListener(CONTACT_REVEALED, reveal)
-      hls?.destroy()
-    }
-  }, [])
+  // Vilnius's current UTC offset (not the visitor's) — computed rather than
+  // hardcoded "GMT+3" so it stays correct across the DST switch to GMT+2.
+  const vilniusOffset = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Vilnius',
+    timeZoneName: 'shortOffset',
+  })
+    .formatToParts(new Date())
+    .find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+2'
 
   return (
     // Permanently fixed, filling the viewport — it never occupies document
@@ -101,24 +67,65 @@ export default function ContactSection() {
     <section
       id="contact"
       ref={sectionRef}
-      className="fixed inset-0 z-[25] flex items-center justify-center overflow-hidden bg-[#0a0a0a]"
-      style={{ visibility: 'hidden', opacity: 0 }}
+      className="relative z-[25] w-full min-h-dvh overflow-hidden bg-white p-6 text-black sm:p-10 md:fixed md:inset-0 md:invisible md:opacity-0"
     >
-      <video
-        ref={videoRef}
-        className="absolute inset-0 z-0 h-full w-full object-cover"
-        muted
-        loop
-        playsInline
-      />
-
-      <div className="relative z-10 text-center px-6">
-        <h2 className="text-4xl font-normal leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
-          WANT TO WORK ON SOMETHING?
-        </h2>
-        <p className="mt-6 text-sm uppercase tracking-widest text-white/50 sm:text-base">
-          CONTACT US
+      {/* Tagline, headline and CTA sit together as one cluster instead of
+          being pinned to separate edges of the viewport. */}
+      <div className="flex h-full flex-col justify-center">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-black">
+          {t('contact.tagline')}
         </p>
+        <h2 className="text-5xl font-normal leading-[1.05] tracking-tight text-black sm:text-6xl lg:text-7xl">
+          {t('contact.headingLine1')}<br />{t('contact.headingLine2')}
+        </h2>
+        <button
+          type="button"
+          onClick={onContactOpen}
+          className="group mt-8 inline-flex w-fit items-center gap-2 border-b border-black/30 pb-1 transition-colors hover:border-black"
+        >
+          <ProximityText
+            text={t('contact.cta')}
+            radius={70}
+            className="text-xs font-medium uppercase tracking-[0.2em] text-black"
+          />
+          <span aria-hidden>&rarr;</span>
+        </button>
+      </div>
+
+      {/* Footer strip — copyright + location left, enquiry + social right. */}
+      <div className="absolute inset-x-6 bottom-6 flex flex-col gap-6 sm:inset-x-10 sm:bottom-10 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-1 text-xs tracking-widest text-black/40">
+          <p>{t('contact.copyright')}</p>
+          <p>{vilniusOffset}, Vilnius</p>
+        </div>
+
+        <div className="flex gap-16">
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-[0.25em] text-black/40">
+              {t('contact.businessEnquiry')}
+            </p>
+            <a href="mailto:titasgr0228@gmail.com" className="inline-block">
+              <ProximityText
+                text="titasgr0228@gmail.com"
+                radius={60}
+                className="text-sm text-black"
+              />
+            </a>
+          </div>
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-[0.25em] text-black/40">
+              {t('contact.social')}
+            </p>
+            <a
+              href="https://www.linkedin.com/in/titas-g-4466b135b"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block"
+            >
+              <ProximityText text={t('contact.linkedin')} radius={60} className="text-sm text-black" />
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   )
