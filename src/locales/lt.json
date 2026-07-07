@@ -10,9 +10,9 @@
     "scroll": "SLINKTI"
   },
   "about": {
-    "intro": "Kuriu skaitmenines patirtis, kurios turi prasmę. Kuriu modernias, plečiamas svetaines ir programas su tvarkingu kodu, patraukliomis sąsajomis ir patikimu veikimu lengvai palaikomu, efektyviu ir paruoštu realiam naudojimui. dar prieš parašant pirmą kodo eilutę.",
+    "intro": "Kuriu skaitmeninius sprendimus, kurie turi aiškią paskirtį. Projektuoju modernias, lengvai plečiamas svetaines ir programas, kuriose dera tvarkingas kodas, patrauklus dizainas ir patikimas veikimas. Siekiu, kad produktas būtų efektyvus, paprastai prižiūrimas ir paruoštas realiam naudojimui dar prieš parašant pirmąją kodo eilutę.",
     "tagline": "Apgalvotas dizainas. Patikimas kūrimas.",
-    "whatWeDo": "Ką kuriu",
+    "whatWeDo": "Ką galiu pasiūlyti",
     "services": {
       "webDev": { "title": "Svetainių kūrimas", "body": "Greitos, modernios svetainės, kuriamos konversijoms." },
       "ecommerce": { "title": "El. parduotuvės", "body": "Parduotuvės, kurios parduoda — optimizuotos pajamoms." },
@@ -33,9 +33,9 @@
     }
   },
   "contact": {
-    "tagline": "Sukurkime kažką, ką verta paleisti.",
-    "headingLine1": "Norite dirbti",
-    "headingLine2": "prie kažko drąsaus?",
+    "tagline": "Nuo idėjos iki veikiančio produkto",
+    "headingLine1": "Kurkime jūsų",
+    "headingLine2": "projektą kartu",
     "cta": "Pradėkime bendradarbiavimą",
     "copyright": "©Titas 2026",
     "businessEnquiry": "Verslo užklausos",
@@ -46,13 +46,13 @@
     "close": "UŽDARYTI",
     "getInTouch": "SUSISIEKITE",
     "headingLine1": "PRADĖKIME",
-    "headingLine2": "PROJEKTĄ",
+    "headingLine2": "DIRBTI",
     "nameLabel": "VARDAS",
     "namePlaceholder": "Jūsų vardas",
     "emailLabel": "EL. PAŠTAS",
     "emailPlaceholder": "jūsų@pastas.lt",
     "detailsLabel": "PROJEKTO DETALĖS",
-    "detailsPlaceholder": "Papasakokite apie savo projektą — ką kuriate, kokie terminai ir biudžetas.",
+    "detailsPlaceholder": "Papasakokite apie savo projektą - ką kuriate, kokie terminai ir biudžetas.",
     "successMessage": "Jūsų užklausa jau pakeliui — netrukus susisieksime.",
     "errorMessage": "Kažkas nutiko ne taip — bandykite dar kartą.",
     "required": "Šis laukas yra privalomas.",
