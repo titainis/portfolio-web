@@ -116,7 +116,8 @@
       "Bash(grep -rn \"['\\\\\"]\\\\.\\\\./\\\\|['\\\\\"]\\\\./\" src --include=*.tsx --include=*.ts)",
       "Bash(git status *)",
       "Bash(git rm *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(xargs -I{} sh -c 'echo {}; cat {} | grep -A5 peerDependencies')"
     ]
   }
 }

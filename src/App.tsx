@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import CinematicScrollLayer from './cinematic/CinematicScrollLayer'
 import Navbar from './components/Navbar'
 import CursorScroll from './components/CursorScroll'
@@ -16,6 +18,8 @@ export default function App() {
       <CursorScroll />
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
       <Preloader />
+      <Analytics />
+      <SpeedInsights />
     </LanguageProvider>
   )
 }
