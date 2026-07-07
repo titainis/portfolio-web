@@ -28,11 +28,21 @@ function luminanceOf(color: string): number | null {
   return (Number(m[1]) * 299 + Number(m[2]) * 587 + Number(m[3]) * 114) / 1000
 }
 
+// Phones get a permanently visible, white navbar (no scroll-linked reveal or
+// background sampling — see below); tracked once up front so first paint is
+// already correct instead of flashing the desktop behaviour for a frame.
+// ponytail: read once, not on resize — this site doesn't support rotating a
+// phone into desktop width mid-session, so a resize listener buys nothing.
+function isPhoneViewport() {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 639.9px)').matches
+}
+
 export default function Navbar({ onContactOpen }: Props) {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(isPhoneViewport)
   const [isLightBg, setIsLightBg] = useState(false)
   const [open, setOpen] = useState(false)
   const navRef = useRef<HTMLElement>(null)
+  const isPhone = useRef(isPhoneViewport()).current
   const { language, setLanguage, t } = useTranslation()
 
   useEffect(() => {
@@ -60,6 +70,10 @@ export default function Navbar({ onContactOpen }: Props) {
     }
 
     function update() {
+      // Phone navbar is permanently visible with a fixed white background —
+      // no scroll-linked reveal and no need to sample what's behind it.
+      if (isPhone) return
+
       const spacerH = spacer?.offsetHeight ?? window.innerHeight * 4
       const progress = Math.min(1, window.scrollY / spacerH)
 
@@ -112,7 +126,9 @@ export default function Navbar({ onContactOpen }: Props) {
     lenisStore.scrollTo(pinStart ?? target)
   }
 
-  const textColor = isLightBg ? '#000000' : 'rgba(255,255,255,0.9)'
+  // Phone: fixed white bar, always black text/icons — no scroll-linked
+  // sampling needed since the background is no longer transparent.
+  const textColor = isPhone ? '#000000' : isLightBg ? '#000000' : 'rgba(255,255,255,0.9)'
 
   return (
     <nav
@@ -124,14 +140,63 @@ export default function Navbar({ onContactOpen }: Props) {
         transition: 'opacity 0.4s ease',
       }}
     >
+      {/* Phones only: hamburger drops a half-screen panel instead of the
+          leftward-expanding list (that list has no room to grow on a phone
+          width). Placed before the list/icons in the DOM so it paints
+          underneath them and never blocks the close tap. White to match the
+          now-permanent white top bar, with its own language toggle since
+          there's no room for one in the collapsed phone bar. */}
+      <div
+        className="fixed inset-x-0 top-0 z-[35] overflow-hidden bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)] sm:hidden"
+        style={{
+          height: open ? '50vh' : '0px',
+          transition: 'height 0.4s cubic-bezier(0.16,1,0.3,1)',
+          pointerEvents: open ? 'auto' : 'none',
+        }}
+      >
+        <div className="flex h-full flex-col items-center justify-center gap-10">
+          <ul className="flex flex-col items-center gap-7">
+            {navItems.map(({ key, target, pinId }) => (
+              <li key={key}>
+                <a
+                  href={target ?? '#'}
+                  onClick={(e) => { e.preventDefault(); handleClick(target, pinId) }}
+                >
+                  <TextReveal
+                    as="span"
+                    text={t(`nav.${key}`)}
+                    fontSize="inherit"
+                    color="#000000"
+                    hoverColor="#000000"
+                    className="text-2xl !tracking-[0.22em]"
+                  />
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            onClick={() => setLanguage(language === 'en' ? 'lt' : 'en')}
+            aria-label={language === 'en' ? 'Switch to Lithuanian' : 'Perjungti į anglų kalbą'}
+            className="cursor-pointer border-t border-black/10 pt-6 text-sm font-bold tracking-[0.2em] text-black"
+          >
+            <span style={{ opacity: language === 'en' ? 1 : 0.35 }}>EN</span>
+            <span className="mx-1 opacity-35">/</span>
+            <span style={{ opacity: language === 'lt' ? 1 : 0.35 }}>LT</span>
+          </button>
+        </div>
+      </div>
+
       {/* Collapsed to zero width behind the icon; expands leftward (the nav
           is right-anchored, so growth reads as sliding out to the left)
           rather than a full-screen overlay. maxWidth is clamped to the
           viewport (minus this row's own padding) so the longest Lithuanian
           labels can never overflow past the left edge of the screen and get
-          silently clipped there. */}
+          silently clipped there. Desktop only now — phones use the
+          half-screen panel above instead. */}
       <ul
-        className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 overflow-hidden sm:flex-nowrap sm:gap-x-6"
+        className="hidden items-center justify-end gap-x-3 gap-y-1 overflow-hidden sm:flex sm:flex-nowrap sm:gap-x-6"
         style={{
           // Reserves room for this row's own padding + gaps + the language
           // toggle + hamburger (~9rem at the mobile scale) so the cap itself
@@ -164,13 +229,14 @@ export default function Navbar({ onContactOpen }: Props) {
         ))}
       </ul>
 
-      {/* Language toggle — always visible, independent of the collapsing
-          nav-link list. Active language stays full opacity, the other dims. */}
+      {/* Language toggle — desktop only; phones get one inside the dropdown
+          panel above instead, where there's actually room for it. Active
+          language stays full opacity, the other dims. */}
       <button
         type="button"
         onClick={() => setLanguage(language === 'en' ? 'lt' : 'en')}
         aria-label={language === 'en' ? 'Switch to Lithuanian' : 'Perjungti į anglų kalbą'}
-        className="shrink-0 cursor-pointer text-sm font-bold tracking-[0.15em]"
+        className="hidden shrink-0 cursor-pointer text-sm font-bold tracking-[0.15em] sm:block"
         style={{ color: textColor }}
       >
         <span style={{ opacity: language === 'en' ? 1 : 0.4 }}>EN</span>

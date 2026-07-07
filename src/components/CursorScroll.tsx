@@ -51,7 +51,7 @@ export default function CursorScroll() {
     <span
       ref={spanRef}
       aria-hidden
-      className="pointer-events-none fixed left-0 top-0 z-[45] will-change-transform text-[11px] font-bold tracking-[0.3em] text-white"
+      className="pointer-events-none fixed left-0 top-0 z-[45] hidden will-change-transform text-[11px] font-bold tracking-[0.3em] text-white md:block"
       style={{
         transform: `translate3d(${pos.current.x}px,${pos.current.y}px,0) translate(-50%,-50%)`,
         // When hidden: opacity 0 + animation stopped. When visible: animation

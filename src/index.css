@@ -95,6 +95,16 @@ html.lenis body {
   will-change: transform;
 }
 
+/* The -4% overscan above exists only to hide edges exposed by the mouse-tilt
+   parallax (useMouseParallax.ts). That parallax already skips itself on any
+   device without a fine pointer, so on phones the overscan has no job left to
+   do — it just crops the photo tighter than intended. Drop it there. */
+@media (max-width: 767.9px) {
+  .cinema-landscape {
+    inset: 0;
+  }
+}
+
 /* MID layer — atmospheric haze, z 5. No movement — inset: 0 is correct. */
 .camera-haze {
   position: absolute;

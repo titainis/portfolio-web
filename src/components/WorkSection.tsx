@@ -456,7 +456,7 @@ export default function WorkSection() {
 
                   {/* Caption — title + link in one horizontal row, description below. */}
                   <div className="mt-8 text-center md:mt-20 md:text-left">
-                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 md:flex-nowrap md:justify-between">
+                    <div className="flex flex-col items-center gap-y-2 md:flex-row md:justify-between">
                       <h3
                         data-sink-item
                         className="shrink-0 whitespace-nowrap text-xl font-normal text-white sm:text-2xl"
