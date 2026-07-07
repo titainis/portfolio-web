@@ -326,8 +326,15 @@ export default function WorkSection() {
     // the scrub progress to animate) — just a plain per-panel fade/rise as
     // each one scrolls into view, same easing as the desktop text reveal.
     mm.add('(max-width: 767.9px)', () => {
+      // Phones won't paint a frame of a paused, metadata-only video (desktop
+      // does), and the play() call lives in the desktop scrub path — so these
+      // rendered as blank black boxes. Play (muted + playsInline, so autoplay
+      // is allowed) as each panel scrolls in, mirroring the desktop reveal.
+      const playVideo = (panel: HTMLElement) =>
+        panel.querySelector('video')?.play().catch(() => {})
       if (reduced) {
         gsap.set(sinkItems, { opacity: 1, y: 0 })
+        panels.forEach(playVideo)
         return
       }
       gsap.set(sinkItems, { opacity: 0, y: 40 })
@@ -337,6 +344,7 @@ export default function WorkSection() {
           start: 'top 85%',
           once: true,
           onEnter: () => {
+            playVideo(panel)
             gsap.to(panel.querySelectorAll<HTMLElement>('[data-sink-item]'), {
               opacity: 1,
               y: 0,
