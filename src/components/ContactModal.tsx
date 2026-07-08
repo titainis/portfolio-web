@@ -214,7 +214,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   <button
                     type="submit"
                     disabled={status === 'loading'}
-                    className={`mt-1 w-full overflow-hidden border border-white bg-white py-3.5 text-xs transition-colors duration-300 hover:bg-black disabled:opacity-50 disabled:hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${status === 'loading' ? 'pointer-events-none' : ''}`}
+                    className={`mt-1 w-full overflow-hidden border border-white bg-white text-xs transition-colors duration-300 hover:bg-black disabled:opacity-50 disabled:hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${status === 'loading' ? 'pointer-events-none' : ''}`}
                   >
                     <TextReveal
                       as="span"
@@ -223,7 +223,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                       color="#000000"
                       hoverColor="#ffffff"
                       className="!flex !w-full !justify-center"
-                      style={{ padding: 0, letterSpacing: '0.28em' }}
+                      style={{ padding: '0.875rem 0', letterSpacing: '0.28em' }}
                     />
                   </button>
                 </form>
