@@ -126,7 +126,8 @@
       "Bash(git commit -m 'play work videos on mobile so thumbnails aren'\\\\''t blank *)",
       "Bash(gh pr *)",
       "PowerShell(gh pr list --head fix/speed-insights-import --state all --json url,state,number)",
-      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
+      "Bash(env)"
     ]
   }
 }
