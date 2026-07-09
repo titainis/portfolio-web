@@ -1,0 +1,25 @@
+[2026-07-08T19:08:45.427Z] RESULT
+============================================================
+{
+  "success": true,
+  "output": "```json\n{\n  \"vulnerabilities\": [],\n  \"riskScore\": 5,\n  \"recommendations\": [\n    \"Add Content Security Policy (CSP) headers to prevent XSS attacks; set `script-src 'self'` and restrict external script loading\",\n    \"Audit the truncated `useMouseParallax.ts` file — ensure no event handlers unsafely process DOM or eval user input\",\n    \"Consider adding Subresource Integrity (SRI) hashes for CDN-hosted dependencies if any are added\",\n    \"Validate that Vercel Analytics (@vercel/analytics) and Speed Insights (@vercel/speed-insights) are loaded only from trusted Vercel domains\",\n    \"In `vite.config.ts`, add explicit PORT validation: `Number.isNaN(port) ? 5173 : port` to prevent accidental misconfigurations\",\n    \"Keep dependencies updated; use `npm audit` regularly since these are animation/UI libraries that receive patches\",\n    \"If videos are added (hls.js hints at video playback), ensure CORS is properly configured and video sources are validated\"\n  ]\n}\n```\n\n**Analysis Summary:**\n\n✅ **No critical vulnerabilities found.** This is a frontend-only React portfolio with animations. Key observations:\n\n- **No secrets**: No API keys, tokens, or passwords hardcoded\n- **No SQL injection**: No database queries (frontend-only)\n- **No XSS vectors**: React auto-escapes content; no unsafe innerHTML or direct DOM manipulation with user input\n- **Dependency health**: All packages are from reputable sources (React, GSAP, Vercel, Tailwind)\n- **No auth issues**: Appropriate for a public portfolio site\n\n**Minor notes:**\n- The module-level singleton in `lenisStore.ts` is intentional and safe\n- `vite.config.ts` PORT handling is loose but not a security issue (dev-server only)\n- The truncated `useMouseParallax.ts` wasn't fully visible — verify it doesn't eval or unsafely process pointer events\n",
+  "parsedOutput": {
+    "vulnerabilities": [],
+    "riskScore": 5,
+    "recommendations": [
+      "Add Content Security Policy (CSP) headers to prevent XSS attacks; set `script-src 'self'` and restrict external script loading",
+      "Audit the truncated `useMouseParallax.ts` file — ensure no event handlers unsafely process DOM or eval user input",
+      "Consider adding Subresource Integrity (SRI) hashes for CDN-hosted dependencies if any are added",
+      "Validate that Vercel Analytics (@vercel/analytics) and Speed Insights (@vercel/speed-insights) are loaded only from trusted Vercel domains",
+      "In `vite.config.ts`, add explicit PORT validation: `Number.isNaN(port) ? 5173 : port` to prevent accidental misconfigurations",
+      "Keep dependencies updated; use `npm audit` regularly since these are animation/UI libraries that receive patches",
+      "If videos are added (hls.js hints at video playback), ensure CORS is properly configured and video sources are validated"
+    ]
+  },
+  "durationMs": 24125,
+  "model": "haiku",
+  "sandboxMode": "strict",
+  "workerType": "audit",
+  "timestamp": "2026-07-08T19:08:45.427Z",
+  "executionId": "audit_1783537701302_n0o1lr"
+}

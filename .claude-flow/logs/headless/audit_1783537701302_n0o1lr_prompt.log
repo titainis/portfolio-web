@@ -1,0 +1,368 @@
+[2026-07-08T19:08:21.317Z] PROMPT
+============================================================
+Analyze this codebase for security vulnerabilities:
+- Check for hardcoded secrets (API keys, passwords)
+- Identify SQL injection risks
+- Find XSS vulnerabilities
+- Check for insecure dependencies
+- Identify authentication/authorization issues
+
+Provide a JSON report with:
+{
+  "vulnerabilities": [{ "severity": "high|medium|low", "file": "...", "line": N, "description": "..." }],
+  "riskScore": 0-100,
+  "recommendations": ["..."]
+}
+
+## Codebase Context
+
+--- postcss.config.js ---
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+--- tailwind.config.js ---
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+
+
+--- src/cinematic/lenisStore.ts ---
+import type Lenis from 'lenis'
+
+// Module-level store so any component can trigger a smooth scroll without
+// needing the Lenis instance passed down via props or context.
+let _instance: Lenis | null = null
+
+export const lenisStore = {
+  set(l: Lenis | null) {
+    _instance = l
+  },
+  scrollTo(target: string | number | HTMLElement) {
+    _instance?.scrollTo(target, {
+      duration: 1.4,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    })
+  },
+  // Freeze / resume smooth scrolling — used while a modal owns the viewport.
+  stop() {
+    _instance?.stop()
+  },
+  start() {
+    _instance?.start()
+  },
+}
+
+
+--- src/cinematic/scrollTimelines.ts ---
+import gsap from 'gsap'
+
+export interface CameraRefs {
+  /** Transparent in-flow spacer whose scroll length drives phase 1 (0 -> 1). */
+  spacer: HTMLElement
+  /** Background layer — independent transform target. */
+  landscape: HTMLElement
+  /** Mid atmospheric layer — independent target. */
+  haze: HTMLElement
+  /** Foreground train layer — independent transform target. */
+  train: HTMLElement
+}
+
+/**
+ * PHASE 1 (scrollProgress 0 -> 1): one continuous, fully scrubbed camera move.
+ *
+ * Everything is a function of scroll position — there is no state machine and
+ * no onComplete trigger. Layers respond on independent systems:
+ *
+ *   Background : scale 1 -> 2.4, accelerating (power2.in) toward the window
+ *                center so it reads as forward camera motion and "pops out".
+ *   Mid haze   : opacity swells through the crossing (~0.5 -> 0.8) then clears.
+ *   Foreground : the train interior scales UP from the window center (1 -> 6),
+ *                accelerating — it gets closer and closer until the camera flies
+ *                THROUGH the window, the frame/seats sliding off every edge.
+ *                Motion blur builds during the rush; opacity fades 1 -> 0 only
+ *                at the end, once it has engulfed the screen ("pass-through").
+ */
+export function buildCameraTimeline(refs: CameraRefs) {
+  const { spacer, landscape, haze, train } = refs
+
+  gsap.set(landscape, { scale: 1, yPercent: 0, transformOrigin: '50% 44%' })
+  gsap.set(haze, { autoAlpha: 0 })
+  gsap.set(train, {
+    autoAlpha: 1,
+    scale: 1,
+    yPercent: 0,
+    filter: 'blur(0px)',
+    transformOrigin: '50% 43%',
+  })
+
+  const tl = gsap.timeline({
+    defaults: { ease: 'none' },
+    scrollTrigger: {
+      trigger: spacer,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 1.2,
+      invalidateOnRefresh: true,
+    },
+  })
+
+  // --- BACKGROUND: forward dolly, accelerating + popping out as we fly in ---
+  tl.to(landscape, { scale: 1.9, ease: 'power2.in', duration: 1 }, 0)
+
+  // --- MID: atmospheric haze peaks during the crossing, then clears ---
+  tl.fromTo(
+    haze,
+    { autoAlpha: 0 },
+    { autoAlpha: 0.28, ease: 'power1.in', duration: 0.25 },
+    0.5,
+  ).to(haze, { autoAlpha: 0, ease: 'power1.out', duration: 0.25 }, 0.78)
+
+  // --- FOREGROUND: train rushes toward camera and flies THROUGH the window ---
+  // Scale up the whole way, accelerating, so it gets closer and closer; the
+  // opaque frame/seats slide off every edge as the transparent window engulfs
+  // the screen. Motion blur builds during the rush; it fades out only at the
+  // very end, after it has passed the camera.
+  tl.to(train, { scale: 6, ease: 'power2.in', duration: 0.9 }, 0)
+    .to(train, { filter: 'blur(7px)', ease: 'power1.in', duration: 0.25 }, 0.55)
+    .to(train, { autoAlpha: 0, ease: 'power2.in', duration: 0.18 }, 0.72)
+
+  return tl
+}
+
+
+--- src/cinematic/useLenis.ts ---
+import { useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Lenis from 'lenis'
+import { lenisStore } from './lenisStore'
+
+// Registered once at module load so timelines built in any effect can rely on it.
+gsap.registerPlugin(ScrollTrigger)
+
+/**
+ * Smooth-scroll engine. Lenis drives the scroll; GSAP's ticker drives Lenis;
+ * ScrollTrigger.update is fired on every Lenis scroll so all scrubbed timelines
+ * read a single, smoothed scroll position. Returns the live Lenis instance ref.
+ */
+export function useLenis() {
+  const lenisRef = useRef<Lenis | null>(null)
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      // Touch scrolling stays native (no syncTouch) so mobile gestures are
+      // never blocked; this only scales the momentum Lenis reads back from
+      // that native scroll, so flicks don't feel sluggish.
+      touchMultiplier: 1.8,
+    })
+    lenisRef.current = lenis
+    lenisStore.set(lenis)
+
+    lenis.on('scroll', ScrollTrigger.update)
+
+    const raf = (time: number) => lenis.raf(time * 1000)
+    gsap.ticker.add(raf)
+    gsap.ticker.lagSmoothing(0)
+
+    return () => {
+      gsap.ticker.remove(raf)
+      lenis.destroy()
+      lenisRef.current = null
+      lenisStore.set(null)
+    }
+  }, [])
+
+  return lenisRef
+}
+
+
+--- src/cinematic/useMouseParallax.ts (truncated) ---
+import { useEffect, type RefObject } from 'react'
+import gsap from 'gsap'
+
+/**
+ * Subtle cursor-driven depth on the fixed camera layers — a virtual camera that
+ * pans slightly around a fixed point in the scene, so the hero reads like a
+ * window you're looking *through* rather than a flat image dragged by the mouse.
+ *
+ * Coexistence with the scroll camera is the whole game here. The landscape and
+ * train already have scrubbed GSAP timelines animating `scale` / `yPercent`.
+ * GSAP keeps every transform sub-property (x, y, rotationX, rotationY, scale,
+ * perspective) in ONE per-element cache and flushes a single combined matrix,
+ * so as long as the mouse only ever writes x / y / rotationX / rotationY and
+ * scroll keeps scale / yPercent, the two systems touch disjoint channels of the
+ * same matrix and never overwrite each other. No shared update loop required.
+ *
+ * `gsap.quickTo` supplies the smoothing: each pointer event just re-targets a
+ * running tween, so motion trails the cursor with a soft ease, keeps drifting
+ * toward it after the mouse stops, and never snaps. It rides the GSAP ticker
+ * (the same one driving Lenis), so there is no React state touched on move and
+ * nothing is bound directly to raw cursor coordinates.
+ */
+
+// Per-layer displacement at maximum cursor offset (viewport corner).
+// Background reads as the distant plane; the train is the near foreground and
+// travels further, which is what sells the parallax separation.
+const BG_SHIFT_X = 10 // px
+const BG_SHIFT_Y = 7 // px
+// Background tilt kept gentle (1.2° / 1.0°). The rotation's perspective
+// foreshortening is what pulls the landscape's edge inward and threatens a
+// black gap; the overscan needed to hide it scales with the tilt angle AND the
+// viewport size. These angles keep a clear sense of depth while letting the
+// landscape overscan stay at -4%: measured to leave ≥16px of edge coverage in
+// the true worst case (cursor in a corner, both axes engaged) all the way out
+// to a 3440px ultrawide viewport — so no edge can ever surface. The strongest
+// depth cue is the foreground/background translate split below, not this tilt,
+// so trimming the angle costs almost nothing visually.
+const BG_ROT_X = 1.0 // deg
+const BG_ROT_Y = 1.2 // deg
+const FG_SHIFT_X = 20 // px — foreground moves ~2x the background
+const FG_SHIFT_Y = 14 // px
+
+const EASE = 'power2.out'
+const DURATION = 1.1 // long, soft trail
+
+export function useMouseParallax(
+  landscapeRef: RefObject<HTMLElement>,
+  trainRef: RefObject<HTMLElement>,
+) {
+  useEffect(() => {
+    const landscape = landscapeRef.current
+    const train = trainRef.current
+    if (!landscape || !train) return
+
+    // Restraint first: skip entirely for reduced-motion users and for devices
+    // without a fine pointer (touch), where there is no cursor to follow.
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    const finePointer = window.matchMedia('(pointer: fine)').matches
+    if (reduceMotion || !finePointer) return
+
+    // Perspective lives on each element so rotationX/Y read as genuine depth.
+    // It is a transform sub-property too, so it merges into the same matrix the
+    // scroll timeline scrubs — it does not reset scale/yPercent.
+    //
+    // 1400px (not a tighter value): the perspective division is what pulls the
+    // landscape's receding edge inward during a rotationY tilt, and that inward
+    // shift scales with the element's half-width — i.e. it gets larger on wider
+    // viewports. A softer perspective keeps the same tilt angle while shrinking
+    // that edge displacement, so the landscape's overscan can stay modest
+    // instead of needing a heavy background zoom to hide a black edge.
+    gsap.set([landscape, train], { transformPerspective: 1400 })
+
+    const tween = { duration: DURATION, ease: EASE }
+    const setBgX = gsap.quickTo(landscape, 'x', tween)
+    const setBgY = gsap.quickTo(landscape, 'y', tween)
+    const setBgRotX = gsap.quickTo(landscape, 'rotationX', tween)
+    const setBgRotY = gsap.quickTo(landscape, 'rotationY', tween)
+    const setFgX = gsap.quickTo(train, 'x', tween)
+    const setFgY = gsap.quickTo(train, 'y', tween)
+
+    const onPointerMove = (e: PointerEvent) => {
+      // Normalized cursor offset from viewport center, clamped to -1..1.
+      const nx = gsap.utils.clamp(-1, 1, (e.clientX / window.innerWidth) * 2 - 1)
+      const ny = gsap.utils.clamp(
+        -1,
+        1,
+        (e.clientY / window.innerHeight) * 2 - 1,
+      )
+
+      // Camera pivots around a fixed point: the scene slides slightly opposite
+      // the cursor (foreground further than background) while the plane tilts
+      // *toward* the cursor — the look of glancing into the frame, not of the
+      // image sliding under the pointer.
+      setBgX(-nx * BG_SHIFT_X)
+      setBgY(-ny * BG_SHIFT_Y)
+      setBgRotY(nx * BG_ROT_Y)
+      setBgRotX(-ny * BG_ROT_X)
+      setFgX(-nx * FG_SHIFT_X)
+      setFgY(-ny * FG_SHIFT_Y)
+  
+
+--- src/components/contactRevealEvent.ts ---
+// Fired by WorkSection's pin ScrollTrigger the instant its phase-2 slide-off
+// finishes — the single source of truth for "CONTACT is fully reached,"
+// since only that trigger knows its own total (gallery + reveal) scroll
+// distance. ContactSection listens for this once and never hides again.
+export const CONTACT_REVEALED = 'contact:revealed'
+
+
+--- src/vite-env.d.ts ---
+/// <reference types="vite/client" />
+
+
+--- vite.config.ts ---
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { fileURLToPath, URL } from 'node:url'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  server: {
+    port: Number(process.env.PORT) || 5173,
+  },
+  build: {
+    outDir: 'dist',
+  },
+})
+
+
+--- package.json ---
+{
+  "name": "linkflow-portfolio",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.0",
+    "gsap": "^3.15.0",
+    "hls.js": "^1.6.16",
+    "lenis": "^1.3.25",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.4"
+  }
+}
+
+
+## Instructions
+
+Analyze the above codebase context and provide your response following the format specified in the task.

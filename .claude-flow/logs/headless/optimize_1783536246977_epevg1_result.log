@@ -1,0 +1,79 @@
+[2026-07-08T18:45:04.043Z] RESULT
+============================================================
+{
+  "success": true,
+  "output": "Quick scan first: this is a static frontend (Vite + React + GSAP/Lenis), no backend/DB calls, so classic N+1 query patterns don't apply — I'll cover the closest real analogs instead (repeated per-render work that scales with list size). Here's what I found, ranked by actual impact.\n\n## 1. \"N+1\"-equivalent: translation lookups re-run per render, not memoized\n\n`AboutSection.tsx` and `WorkSection.tsx` both rebuild their data arrays — calling `t()` N times — on **every render**, including renders triggered by unrelated state (hover, lightbox open/close):\n\n```tsx\n// AboutSection.tsx — runs on every hover state change\nconst services = serviceKeys.map((key) => ({\n  n: key,\n  title: t(`about.services.${key}.title`),\n  body: t(`about.services.${key}.body`),\n}))\n```\n\n```tsx\n// WorkSection.tsx — same issue, runs on every lightbox/watchHover state change\nconst projects: Project[] = projectKeys.map((key) => ({ ... }))\n```\n\nFix: memoize on the only thing that actually changes these values (`t`/`language`):\n\n```tsx\nconst services = useMemo(\n  () => serviceKeys.map((key) => ({\n    n: key,\n    title: t(`about.services.${key}.title`),\n    body: t(`about.services.${key}.body`),\n  })),\n  [t],\n)\n```\n→ skipped: only worth it if `t` is stable across renders (check `LanguageContext` memoizes `t`) — otherwise this buys nothing. Verify that first.\n\n## 2. Unnecessary re-renders\n\n- Nothing catastrophic — `hovered`/`open`/`lightbox` state is well-scoped, and `CursorScroll`/`useMouseParallax` correctly avoid React state for per-frame motion (they write directly to `style.transform`, which is the right call). Genuinely nothing to fix here beyond #1.\n\n## 3. Layout-thrash / caching opportunity: `Navbar`'s scroll handler\n\n`Navbar.tsx`'s `update()` runs on **every scroll event, unthrottled**, and does a synchronous `getBoundingClientRect()` + `elementFromPoint()` + `getComputedStyle()` walk up the DOM tree:\n\n```tsx\nwindow.addEventListener('scroll', update, { passive: true })\n```\n\n`elementFromPoint` + `getComputedStyle` force a style/layout recalc each call. On a fast scroll (Lenis firing frequently) this runs dozens of times a second.\n\n```tsx\n// throttle to animation frames — cheap, no new dependency\nlet ticking = false\nfunction onScroll() {\n  if (ticking) return\n  ticking = true\n  requestAnimationFrame(() => { update(); ticking = false })\n}\nwindow.addEventListener('scroll', onScroll, { passive: true })\n```\n→ skipped: a full rAF-throttle utility — this inline pattern is the whole fix.\n\n## 4. Redundant computation: `ContactSection`'s timezone format\n\n```tsx\nconst vilniusOffset = new Intl.DateTimeFormat('en-US', { ... }).formatToParts(new Date())...\n```\n\nThis constructs an `Intl.DateTimeFormat` and recomputes on every render of `ContactSection`, even though the GMT offset only changes twice a year (DST). Cheap in isolation, but pointless work:\n\n```tsx\nconst vilniusOffset = useMemo(() => new Intl.DateTimeFormat('en-US', {\n  timeZone: 'Europe/Vilnius', timeZoneName: 'shortOffset',\n}).formatToParts(new Date()).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+2', [])\n```\n→ empty deps: it's fixed for the page's lifetime, no need to recompute ever.\n\nMinor: `Navbar.tsx`'s `luminanceOf` regex literal `/rgba?\\(...\\)/` is recreated on every call (it's sampled on every scroll tick). Hoist it to module scope:\n```tsx\nconst RGB_RE = /rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/\n```\n\n## 5. Memory-leak risk to verify (can't confirm — files were truncated)\n\nTwo effects end right where the cleanup/`return` would be, so I can't confirm they clean up:\n\n- **`useMouseParallax.ts`**: adds `window.addEventListener('pointermove', onPointerMove)` but the snippet cuts off before showing `return () => window.removeEventListener(...)`. If that return is missing, every mount leaks a listener plus the tween lock GSAP holds on `landscape`/`train`.\n- **`VideoLightbox.tsx`**: keeps `timers = useRef<number[]>([])` for manual timeout tracking — if any `setTimeout` push into that array isn't matched by a `clearTimeout` in an unmount cleanup, closing/reopening the lightbox repeatedly will leak timers that fire after unmount and touch stale refs.\n\nWorth a 30-second check:\n```bash\ngrep -n \"return () =>\" src/cinematic/useMouseParallax.ts src/components/VideoLightbox.tsx\n```\n\n**Bottom line**: this codebase is small and mostly clean — no real N+1, no runaway re-renders, animation loops correctly bypass React state. The only two things actually worth changing are the `Navbar` scroll throttle (real jank risk) and confirming the two truncated cleanup functions exist. The `useMemo` items are marginal — skip unless profiling shows AboutSection/WorkSection re-rendering visibly.\n",
+  "parsedOutput": {
+    "sections": [
+      {
+        "title": "1. \"N+1\"-equivalent: translation lookups re-run per render, not memoized",
+        "content": "\n`AboutSection.tsx` and `WorkSection.tsx` both rebuild their data arrays — calling `t()` N times — on **every render**, including renders triggered by unrelated state (hover, lightbox open/close):\n\n```tsx\n// AboutSection.tsx — runs on every hover state change\nconst services = serviceKeys.map((key) => ({\n  n: key,\n  title: t(`about.services.${key}.title`),\n  body: t(`about.services.${key}.body`),\n}))\n```\n\n```tsx\n// WorkSection.tsx — same issue, runs on every lightbox/watchHover state change\nconst projects: Project[] = projectKeys.map((key) => ({ ... }))\n```\n\nFix: memoize on the only thing that actually changes these values (`t`/`language`):\n\n```tsx\nconst services = useMemo(\n  () => serviceKeys.map((key) => ({\n    n: key,\n    title: t(`about.services.${key}.title`),\n    body: t(`about.services.${key}.body`),\n  })),\n  [t],\n)\n```\n→ skipped: only worth it if `t` is stable across renders (check `LanguageContext` memoizes `t`) — otherwise this buys nothing. Verify that first.\n\n",
+        "level": 2
+      },
+      {
+        "title": "2. Unnecessary re-renders",
+        "content": "\n- Nothing catastrophic — `hovered`/`open`/`lightbox` state is well-scoped, and `CursorScroll`/`useMouseParallax` correctly avoid React state for per-frame motion (they write directly to `style.transform`, which is the right call). Genuinely nothing to fix here beyond #1.\n\n",
+        "level": 2
+      },
+      {
+        "title": "3. Layout-thrash / caching opportunity: `Navbar`'s scroll handler",
+        "content": "\n`Navbar.tsx`'s `update()` runs on **every scroll event, unthrottled**, and does a synchronous `getBoundingClientRect()` + `elementFromPoint()` + `getComputedStyle()` walk up the DOM tree:\n\n```tsx\nwindow.addEventListener('scroll', update, { passive: true })\n```\n\n`elementFromPoint` + `getComputedStyle` force a style/layout recalc each call. On a fast scroll (Lenis firing frequently) this runs dozens of times a second.\n\n```tsx\n// throttle to animation frames — cheap, no new dependency\nlet ticking = false\nfunction onScroll() {\n  if (ticking) return\n  ticking = true\n  requestAnimationFrame(() => { update(); ticking = false })\n}\nwindow.addEventListener('scroll', onScroll, { passive: true })\n```\n→ skipped: a full rAF-throttle utility — this inline pattern is the whole fix.\n\n",
+        "level": 2
+      },
+      {
+        "title": "4. Redundant computation: `ContactSection`'s timezone format",
+        "content": "\n```tsx\nconst vilniusOffset = new Intl.DateTimeFormat('en-US', { ... }).formatToParts(new Date())...\n```\n\nThis constructs an `Intl.DateTimeFormat` and recomputes on every render of `ContactSection`, even though the GMT offset only changes twice a year (DST). Cheap in isolation, but pointless work:\n\n```tsx\nconst vilniusOffset = useMemo(() => new Intl.DateTimeFormat('en-US', {\n  timeZone: 'Europe/Vilnius', timeZoneName: 'shortOffset',\n}).formatToParts(new Date()).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+2', [])\n```\n→ empty deps: it's fixed for the page's lifetime, no need to recompute ever.\n\nMinor: `Navbar.tsx`'s `luminanceOf` regex literal `/rgba?\\(...\\)/` is recreated on every call (it's sampled on every scroll tick). Hoist it to module scope:\n```tsx\nconst RGB_RE = /rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/\n```\n\n",
+        "level": 2
+      },
+      {
+        "title": "5. Memory-leak risk to verify (can't confirm — files were truncated)",
+        "content": "Two effects end right where the cleanup/`return` would be, so I can't confirm they clean up:\n\n- **`useMouseParallax.ts`**: adds `window.addEventListener('pointermove', onPointerMove)` but the snippet cuts off before showing `return () => window.removeEventListener(...)`. If that return is missing, every mount leaks a listener plus the tween lock GSAP holds on `landscape`/`train`.\n- **`VideoLightbox.tsx`**: keeps `timers = useRef<number[]>([])` for manual timeout tracking — if any `setTimeout` push into that array isn't matched by a `clearTimeout` in an unmount cleanup, closing/reopening the lightbox repeatedly will leak timers that fire after unmount and touch stale refs.\n\nWorth a 30-second check:\n```bash\ngrep -n \"return () =>\" src/cinematic/useMouseParallax.ts src/components/VideoLightbox.tsx\n```\n\n**Bottom line**: this codebase is small and mostly clean — no real N+1, no runaway re-renders, animation loops correctly bypass React state. The only two things actually worth changing are the `Navbar` scroll throttle (real jank risk) and confirming the two truncated cleanup functions exist. The `useMemo` items are marginal — skip unless profiling shows AboutSection/WorkSection re-rendering visibly.",
+        "level": 2
+      }
+    ],
+    "codeBlocks": [
+      {
+        "language": "tsx",
+        "code": "// AboutSection.tsx — runs on every hover state change\nconst services = serviceKeys.map((key) => ({\n  n: key,\n  title: t(`about.services.${key}.title`),\n  body: t(`about.services.${key}.body`),\n}))"
+      },
+      {
+        "language": "tsx",
+        "code": "// WorkSection.tsx — same issue, runs on every lightbox/watchHover state change\nconst projects: Project[] = projectKeys.map((key) => ({ ... }))"
+      },
+      {
+        "language": "tsx",
+        "code": "const services = useMemo(\n  () => serviceKeys.map((key) => ({\n    n: key,\n    title: t(`about.services.${key}.title`),\n    body: t(`about.services.${key}.body`),\n  })),\n  [t],\n)"
+      },
+      {
+        "language": "tsx",
+        "code": "window.addEventListener('scroll', update, { passive: true })"
+      },
+      {
+        "language": "tsx",
+        "code": "// throttle to animation frames — cheap, no new dependency\nlet ticking = false\nfunction onScroll() {\n  if (ticking) return\n  ticking = true\n  requestAnimationFrame(() => { update(); ticking = false })\n}\nwindow.addEventListener('scroll', onScroll, { passive: true })"
+      },
+      {
+        "language": "tsx",
+        "code": "const vilniusOffset = new Intl.DateTimeFormat('en-US', { ... }).formatToParts(new Date())..."
+      },
+      {
+        "language": "tsx",
+        "code": "const vilniusOffset = useMemo(() => new Intl.DateTimeFormat('en-US', {\n  timeZone: 'Europe/Vilnius', timeZoneName: 'shortOffset',\n}).formatToParts(new Date()).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+2', [])"
+      },
+      {
+        "language": "tsx",
+        "code": "const RGB_RE = /rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/"
+      },
+      {
+        "language": "bash",
+        "code": "grep -n \"return () =>\" src/cinematic/useMouseParallax.ts src/components/VideoLightbox.tsx"
+      }
+    ]
+  },
+  "durationMs": 57066,
+  "model": "sonnet",
+  "sandboxMode": "permissive",
+  "workerType": "optimize",
+  "timestamp": "2026-07-08T18:45:04.043Z",
+  "executionId": "optimize_1783536246977_epevg1"
+}

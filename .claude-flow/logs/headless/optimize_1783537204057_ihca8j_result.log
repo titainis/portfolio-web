@@ -1,0 +1,76 @@
+[2026-07-08T19:01:49.089Z] RESULT
+============================================================
+{
+  "success": true,
+  "output": "## Summary\n\nThis is a static frontend (Vite + React + GSAP/Lenis + Framer Motion) — no database or API layer, so classic N+1 *query* patterns don't apply. There is, however, a direct equivalent: a DOM-query loop that fires on every scroll frame. Details below, grouped as requested.\n\n### 1. N+1-equivalent: DOM queries repeated inside a per-frame scroll loop\n\n`WorkSection.tsx:169-191` — `applyReveal()` is called from the ScrollTrigger's `onUpdate` (fires on essentially every scrub frame while scrolling) for every non-intro panel:\n\n```js\nconst applyReveal = (panel: HTMLElement, raw: number) => {\n  const hLines = panel.querySelectorAll<HTMLElement>('[data-frame-line=\"h\"]')\n  const vLines = panel.querySelectorAll<HTMLElement>('[data-frame-line=\"v\"]')\n  const videoWrap = panel.querySelector<HTMLElement>('[data-video-wrap]')\n  ...\n}\n```\n\n3 panels × 3 DOM queries × every scrub tick = the \"N+1\" here — static elements re-queried on every frame instead of once. Cache them per panel at setup time:\n\n```js\nconst panelEls = panels.map((panel) => ({\n  panel,\n  hLines: panel.querySelectorAll<HTMLElement>('[data-frame-line=\"h\"]'),\n  vLines: panel.querySelectorAll<HTMLElement>('[data-frame-line=\"v\"]'),\n  videoWrap: panel.querySelector<HTMLElement>('[data-video-wrap]'),\n}))\n\nconst applyReveal = (entry: typeof panelEls[number], raw: number) => {\n  const t = easeOutCubic(clamp01(raw))\n  gsap.set(entry.hLines, { scaleX: t })\n  gsap.set(entry.vLines, { scaleY: t })\n  gsap.set(entry.videoWrap, { opacity: t, y: 60 * (1 - t), scale: 0.95 + 0.05 * t })\n  const video = entry.videoWrap?.querySelector('video') // could cache this too\n  ...\n}\n```\n\nBuild once outside `onUpdate`, reuse the cached refs inside it.\n\n### 2. Unnecessary re-renders\n\n`WorkSection.tsx:78-84` and `AboutSection.tsx` rebuild their translated data array **on every render**, including renders triggered by unrelated state (`watchHover` toggles on every video mouseenter/leave; `hovered` toggles on every service-list hover):\n\n```js\nconst projects: Project[] = projectKeys.map((key) => ({\n  n: key,\n  title: t(`work.projects.${key}.title`),\n  body: t(`work.projects.${key}.body`),\n  ...projectMeta[key],\n}))\n```\n\nFix — memoize on `t` (which itself is stable per language, per `LanguageContext.tsx:44`):\n\n```js\nconst projects = useMemo(\n  () => projectKeys.map((key) => ({\n    n: key,\n    title: t(`work.projects.${key}.title`),\n    body: t(`work.projects.${key}.body`),\n    ...projectMeta[key],\n  })),\n  [t],\n)\n```\n\nSame fix applies to `services` in `AboutSection.tsx`.\n\n### 3. Caching opportunities\n\n- **Above fix** (memoize translated arrays) is the main one.\n- `Navbar.tsx` — `spacer` and other DOM lookups are already correctly cached once outside the scroll handler (good pattern, already in place — no change needed there).\n- Video elements in `WorkSection` use `preload=\"metadata\"` and defer `play()` until reveal — already a good lazy-load pattern, no change needed.\n\n### 4. Memory leaks (minor, not severe)\n\n- `useMouseParallax.ts` and `HamburgerButton.tsx` create GSAP tweens (`quickTo`, `gsap.to`) but never call `.kill()` on unmount — only event listeners are cleaned up. If the component unmounts mid-tween, the tween keeps running briefly against a detached node. Low impact (tweens are short and GC eventually), but the fix is one line:\n\n```js\nreturn () => {\n  window.removeEventListener('pointermove', onPointerMove)\n  gsap.killTweensOf([landscape, train]) // add this\n}\n```\n\n- Everything else checked (Preloader, ContactModal, VideoLightbox, CursorScroll, WorkSection's ScrollTriggers) properly kills timelines/timers/listeners on cleanup — no leaks found there.\n- Already flagged by the codebase itself (`WorkSection.tsx:181-182`, `ponytail:` comment): off-screen panel videos keep decoding/playing after scrolling past. Already accepted debt with a documented upgrade path — not re-litigating it here.\n\n### 5. Redundant computations\n\n`Navbar.tsx` — `update()` runs on **every native `scroll` event**, unthrottled, and does `elementFromPoint` + a `getComputedStyle` walk up the DOM tree each time:\n\n```js\nwindow.addEventListener('scroll', update, { passive: true })\n```\n\n`getComputedStyle` forces a style recalculation — doing this on every scroll event (which can fire many times per second under Lenis's momentum scrolling) is real, avoidable work. Gate it to one calculation per animation frame:\n\n```js\nlet ticking = false\nfunction onScroll() {\n  if (ticking) return\n  ticking = true\n  requestAnimationFrame(() => { update(); ticking = false })\n}\nwindow.addEventListener('scroll', onScroll, { passive: true })\n```\n\nSame rAF-gate is worth applying to `WorkSection.tsx:135` (`onScroll` re-checking `elementFromPoint` for the watch-hint) though its cost per call is much lower — optional.\n\n**Priority order:** #1 (cache panel elements) and #2 (memoize translated arrays) are the real wins — both fire on hot paths (scroll frame, hover). #4 and the Navbar throttle are cheap, low-risk cleanups.\n",
+  "parsedOutput": {
+    "sections": [
+      {
+        "title": "Summary",
+        "content": "\nThis is a static frontend (Vite + React + GSAP/Lenis + Framer Motion) — no database or API layer, so classic N+1 *query* patterns don't apply. There is, however, a direct equivalent: a DOM-query loop that fires on every scroll frame. Details below, grouped as requested.\n\n",
+        "level": 2
+      },
+      {
+        "title": "1. N+1-equivalent: DOM queries repeated inside a per-frame scroll loop",
+        "content": "\n`WorkSection.tsx:169-191` — `applyReveal()` is called from the ScrollTrigger's `onUpdate` (fires on essentially every scrub frame while scrolling) for every non-intro panel:\n\n```js\nconst applyReveal = (panel: HTMLElement, raw: number) => {\n  const hLines = panel.querySelectorAll<HTMLElement>('[data-frame-line=\"h\"]')\n  const vLines = panel.querySelectorAll<HTMLElement>('[data-frame-line=\"v\"]')\n  const videoWrap = panel.querySelector<HTMLElement>('[data-video-wrap]')\n  ...\n}\n```\n\n3 panels × 3 DOM queries × every scrub tick = the \"N+1\" here — static elements re-queried on every frame instead of once. Cache them per panel at setup time:\n\n```js\nconst panelEls = panels.map((panel) => ({\n  panel,\n  hLines: panel.querySelectorAll<HTMLElement>('[data-frame-line=\"h\"]'),\n  vLines: panel.querySelectorAll<HTMLElement>('[data-frame-line=\"v\"]'),\n  videoWrap: panel.querySelector<HTMLElement>('[data-video-wrap]'),\n}))\n\nconst applyReveal = (entry: typeof panelEls[number], raw: number) => {\n  const t = easeOutCubic(clamp01(raw))\n  gsap.set(entry.hLines, { scaleX: t })\n  gsap.set(entry.vLines, { scaleY: t })\n  gsap.set(entry.videoWrap, { opacity: t, y: 60 * (1 - t), scale: 0.95 + 0.05 * t })\n  const video = entry.videoWrap?.querySelector('video') // could cache this too\n  ...\n}\n```\n\nBuild once outside `onUpdate`, reuse the cached refs inside it.\n\n",
+        "level": 3
+      },
+      {
+        "title": "2. Unnecessary re-renders",
+        "content": "\n`WorkSection.tsx:78-84` and `AboutSection.tsx` rebuild their translated data array **on every render**, including renders triggered by unrelated state (`watchHover` toggles on every video mouseenter/leave; `hovered` toggles on every service-list hover):\n\n```js\nconst projects: Project[] = projectKeys.map((key) => ({\n  n: key,\n  title: t(`work.projects.${key}.title`),\n  body: t(`work.projects.${key}.body`),\n  ...projectMeta[key],\n}))\n```\n\nFix — memoize on `t` (which itself is stable per language, per `LanguageContext.tsx:44`):\n\n```js\nconst projects = useMemo(\n  () => projectKeys.map((key) => ({\n    n: key,\n    title: t(`work.projects.${key}.title`),\n    body: t(`work.projects.${key}.body`),\n    ...projectMeta[key],\n  })),\n  [t],\n)\n```\n\nSame fix applies to `services` in `AboutSection.tsx`.\n\n",
+        "level": 3
+      },
+      {
+        "title": "3. Caching opportunities",
+        "content": "\n- **Above fix** (memoize translated arrays) is the main one.\n- `Navbar.tsx` — `spacer` and other DOM lookups are already correctly cached once outside the scroll handler (good pattern, already in place — no change needed there).\n- Video elements in `WorkSection` use `preload=\"metadata\"` and defer `play()` until reveal — already a good lazy-load pattern, no change needed.\n\n",
+        "level": 3
+      },
+      {
+        "title": "4. Memory leaks (minor, not severe)",
+        "content": "\n- `useMouseParallax.ts` and `HamburgerButton.tsx` create GSAP tweens (`quickTo`, `gsap.to`) but never call `.kill()` on unmount — only event listeners are cleaned up. If the component unmounts mid-tween, the tween keeps running briefly against a detached node. Low impact (tweens are short and GC eventually), but the fix is one line:\n\n```js\nreturn () => {\n  window.removeEventListener('pointermove', onPointerMove)\n  gsap.killTweensOf([landscape, train]) // add this\n}\n```\n\n- Everything else checked (Preloader, ContactModal, VideoLightbox, CursorScroll, WorkSection's ScrollTriggers) properly kills timelines/timers/listeners on cleanup — no leaks found there.\n- Already flagged by the codebase itself (`WorkSection.tsx:181-182`, `ponytail:` comment): off-screen panel videos keep decoding/playing after scrolling past. Already accepted debt with a documented upgrade path — not re-litigating it here.\n\n",
+        "level": 3
+      },
+      {
+        "title": "5. Redundant computations",
+        "content": "`Navbar.tsx` — `update()` runs on **every native `scroll` event**, unthrottled, and does `elementFromPoint` + a `getComputedStyle` walk up the DOM tree each time:\n\n```js\nwindow.addEventListener('scroll', update, { passive: true })\n```\n\n`getComputedStyle` forces a style recalculation — doing this on every scroll event (which can fire many times per second under Lenis's momentum scrolling) is real, avoidable work. Gate it to one calculation per animation frame:\n\n```js\nlet ticking = false\nfunction onScroll() {\n  if (ticking) return\n  ticking = true\n  requestAnimationFrame(() => { update(); ticking = false })\n}\nwindow.addEventListener('scroll', onScroll, { passive: true })\n```\n\nSame rAF-gate is worth applying to `WorkSection.tsx:135` (`onScroll` re-checking `elementFromPoint` for the watch-hint) though its cost per call is much lower — optional.\n\n**Priority order:** #1 (cache panel elements) and #2 (memoize translated arrays) are the real wins — both fire on hot paths (scroll frame, hover). #4 and the Navbar throttle are cheap, low-risk cleanups.",
+        "level": 3
+      }
+    ],
+    "codeBlocks": [
+      {
+        "language": "js",
+        "code": "const applyReveal = (panel: HTMLElement, raw: number) => {\n  const hLines = panel.querySelectorAll<HTMLElement>('[data-frame-line=\"h\"]')\n  const vLines = panel.querySelectorAll<HTMLElement>('[data-frame-line=\"v\"]')\n  const videoWrap = panel.querySelector<HTMLElement>('[data-video-wrap]')\n  ...\n}"
+      },
+      {
+        "language": "js",
+        "code": "const panelEls = panels.map((panel) => ({\n  panel,\n  hLines: panel.querySelectorAll<HTMLElement>('[data-frame-line=\"h\"]'),\n  vLines: panel.querySelectorAll<HTMLElement>('[data-frame-line=\"v\"]'),\n  videoWrap: panel.querySelector<HTMLElement>('[data-video-wrap]'),\n}))\n\nconst applyReveal = (entry: typeof panelEls[number], raw: number) => {\n  const t = easeOutCubic(clamp01(raw))\n  gsap.set(entry.hLines, { scaleX: t })\n  gsap.set(entry.vLines, { scaleY: t })\n  gsap.set(entry.videoWrap, { opacity: t, y: 60 * (1 - t), scale: 0.95 + 0.05 * t })\n  const video = entry.videoWrap?.querySelector('video') // could cache this too\n  ...\n}"
+      },
+      {
+        "language": "js",
+        "code": "const projects: Project[] = projectKeys.map((key) => ({\n  n: key,\n  title: t(`work.projects.${key}.title`),\n  body: t(`work.projects.${key}.body`),\n  ...projectMeta[key],\n}))"
+      },
+      {
+        "language": "js",
+        "code": "const projects = useMemo(\n  () => projectKeys.map((key) => ({\n    n: key,\n    title: t(`work.projects.${key}.title`),\n    body: t(`work.projects.${key}.body`),\n    ...projectMeta[key],\n  })),\n  [t],\n)"
+      },
+      {
+        "language": "js",
+        "code": "return () => {\n  window.removeEventListener('pointermove', onPointerMove)\n  gsap.killTweensOf([landscape, train]) // add this\n}"
+      },
+      {
+        "language": "js",
+        "code": "window.addEventListener('scroll', update, { passive: true })"
+      },
+      {
+        "language": "js",
+        "code": "let ticking = false\nfunction onScroll() {\n  if (ticking) return\n  ticking = true\n  requestAnimationFrame(() => { update(); ticking = false })\n}\nwindow.addEventListener('scroll', onScroll, { passive: true })"
+      }
+    ]
+  },
+  "durationMs": 105032,
+  "model": "sonnet",
+  "sandboxMode": "permissive",
+  "workerType": "optimize",
+  "timestamp": "2026-07-08T19:01:49.089Z",
+  "executionId": "optimize_1783537204057_ihca8j"
+}
