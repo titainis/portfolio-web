@@ -6,6 +6,14 @@
     <title>Titas Portfolio</title>
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" />
+    <script>
+      // Must run synchronously before the browser's own scroll-restoration
+      // kicks in — a deferred module script (main.tsx) runs too late, since
+      // Chrome keeps re-applying the saved scroll offset as the page grows
+      // during hydration/asset load, overriding a one-time scrollTo(0,0).
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+      window.scrollTo(0, 0)
+    </script>
   </head>
   <body>
     <div id="root"></div>
