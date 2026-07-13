@@ -35,6 +35,7 @@ export default function Preloader() {
     const assets: { frac: number }[] = []
     const cleanups: Array<() => void> = []
     let splitStarted = false
+    let disposed = false
     let pendingRecheck: number | undefined
 
     const playSplit = () => {
@@ -74,10 +75,11 @@ export default function Preloader() {
     }
 
     const updateCounter = () => {
+      if (disposed || splitStarted) return
       const total = assets.length || 1
       const sum = assets.reduce((s, a) => s + a.frac, 0)
       const pct = Math.min(100, (sum / total) * 100)
-      gsap.to(counter, { value: pct, duration: 0.25, ease: 'power1.out', overwrite: true, onUpdate: () => {
+      gsap.to(counter, { value: pct, duration: 0.4, ease: 'power1.out', overwrite: true, onUpdate: () => {
         counterEl.textContent = String(Math.floor(counter.value))
       } })
       tryFinish()
@@ -99,7 +101,10 @@ export default function Preloader() {
           updateCounter()
         }
       }
-      const doneEvent = el instanceof HTMLVideoElement ? 'canplaythrough' : 'load'
+      // Videos on the page use preload="metadata" — mobile browsers won't
+      // buffer past that without a user gesture, so canplaythrough never
+      // fires there. loadedmetadata matches what actually gets loaded.
+      const doneEvent = el instanceof HTMLVideoElement ? 'loadedmetadata' : 'load'
       el.addEventListener('progress', onProgress)
       el.addEventListener(doneEvent, markDone)
       el.addEventListener('error', markDone)
@@ -110,26 +115,61 @@ export default function Preloader() {
       })
 
       if (el instanceof HTMLImageElement && el.complete) markDone()
-      else if (el instanceof HTMLVideoElement && el.readyState >= 3) markDone()
+      else if (el instanceof HTMLVideoElement && el.readyState >= 1) markDone()
+    }
+
+    // Background images are the heavyweight assets (landscape/train photos).
+    // Fetch them with a streaming reader so frac tracks real bytes received —
+    // this is what makes the counter move continuously instead of jumping in
+    // 100/N steps. The URL is already being fetched by CSS, so this rides the
+    // same HTTP cache entry rather than downloading twice.
+    const trackUrl = (url: string) => {
+      const asset = { frac: 0 }
+      assets.push(asset)
+      const finish = () => {
+        asset.frac = 1
+        updateCounter()
+      }
+      fetch(url)
+        .then(async (res) => {
+          const total = Number(res.headers.get('content-length'))
+          const reader = res.body?.getReader()
+          if (!reader || !total) return finish()
+          let loaded = 0
+          for (;;) {
+            const { done, value } = await reader.read()
+            if (done) break
+            loaded += value.length
+            asset.frac = Math.min(1, loaded / total)
+            updateCounter()
+          }
+          finish()
+        })
+        .catch(finish)
     }
 
     document.querySelectorAll('img').forEach((img) => track(img as HTMLImageElement))
     document.querySelectorAll('video').forEach((video) => track(video as HTMLVideoElement))
+    const seenUrls = new Set<string>()
     document.querySelectorAll('*').forEach((el) => {
       const bg = getComputedStyle(el).backgroundImage
       const match = bg.match(/url\(["']?([^"')]+)["']?\)/)
-      if (match?.[1]) {
-        const proxy = new Image()
-        track(proxy)
-        proxy.src = match[1]
+      if (match?.[1] && !seenUrls.has(match[1])) {
+        seenUrls.add(match[1])
+        trackUrl(match[1])
       }
     })
 
     if (assets.length === 0) assets.push({ frac: 1 })
     tryFinish()
+    // Real timer for the hard cap — tryFinish only runs on asset events, so
+    // without this a video that never fires anything wedges the site forever.
+    const maxTimer = window.setTimeout(playSplit, MAX_WAIT_MS)
 
     return () => {
+      disposed = true
       window.clearTimeout(pendingRecheck)
+      window.clearTimeout(maxTimer)
       cleanups.forEach((fn) => fn())
       gsap.killTweensOf(counter)
       lenisStore.start()
