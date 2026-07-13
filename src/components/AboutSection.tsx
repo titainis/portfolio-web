@@ -85,6 +85,12 @@ export default function AboutSection() {
                     className="relative flex cursor-default items-center gap-3 py-2"
                   >
 
+                    {/* Full-bleed hit area — the hover reveal should trigger
+                        anywhere on this row across the whole screen width,
+                        not just on the title text. Desktop-only, like the
+                        reveal itself. Section's overflow-hidden clips it. */}
+                    <span aria-hidden className="absolute inset-y-0 left-[-100vw] right-[-100vw] hidden md:block" />
+
                     {/* NEW TEXT — absolute, at the very left of the page */}
                     <span
                       className="pointer-events-none absolute left-[-32vw] top-1/2 whitespace-nowrap text-2xl font-bold text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:left-[-50vw] md:text-2xl"
