@@ -4,7 +4,7 @@ import type { RefObject } from 'react'
  * Optional real imagery. Drop direct image URLs here; empty strings fall back
  * to the built-in cinematic gradients.
  */
-const TRAIN_IMAGE = '/train_window.png'
+const TRAIN_IMAGE = '/train_window.webp'
 const LANDSCAPE_IMAGE = '/landscape_view.jpg'
 
 interface CameraLayersProps {

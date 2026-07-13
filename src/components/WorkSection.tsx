@@ -329,34 +329,46 @@ export default function WorkSection() {
       // Phones won't paint a frame of a paused, metadata-only video (desktop
       // does), and the play() call lives in the desktop scrub path — so these
       // rendered as blank black boxes. Play (muted + playsInline, so autoplay
-      // is allowed) as each panel scrolls in, mirroring the desktop reveal.
-      const playVideo = (panel: HTMLElement) =>
-        panel.querySelector('video')?.play().catch(() => {})
-      if (reduced) {
-        gsap.set(sinkItems, { opacity: 1, y: 0 })
-        panels.forEach(playVideo)
-        return
-      }
-      gsap.set(sinkItems, { opacity: 0, y: 40 })
-      const triggers = panels.map((panel) =>
+      // is allowed) while the panel is on screen — and PAUSE once it leaves,
+      // so a phone is never decoding three looping videos it can't see.
+      const videoTriggers = panels.map((panel) =>
         ScrollTrigger.create({
           trigger: panel,
-          start: 'top 85%',
-          once: true,
-          onEnter: () => {
-            playVideo(panel)
-            gsap.to(panel.querySelectorAll<HTMLElement>('[data-sink-item]'), {
-              opacity: 1,
-              y: 0,
-              duration: 0.8,
-              ease: 'workSinkIn',
-              stagger: 0.1,
-              overwrite: true,
-            })
+          start: 'top bottom',
+          end: 'bottom top',
+          onToggle: (self) => {
+            const video = panel.querySelector('video')
+            if (!video) return
+            if (self.isActive) video.play().catch(() => {})
+            else video.pause()
           },
         }),
       )
-      return () => triggers.forEach((trigger) => trigger.kill())
+
+      let textTriggers: ScrollTrigger[] = []
+      if (reduced) {
+        gsap.set(sinkItems, { opacity: 1, y: 0 })
+      } else {
+        gsap.set(sinkItems, { opacity: 0, y: 40 })
+        textTriggers = panels.map((panel) =>
+          ScrollTrigger.create({
+            trigger: panel,
+            start: 'top 85%',
+            once: true,
+            onEnter: () => {
+              gsap.to(panel.querySelectorAll<HTMLElement>('[data-sink-item]'), {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                ease: 'workSinkIn',
+                stagger: 0.1,
+                overwrite: true,
+              })
+            },
+          }),
+        )
+      }
+      return () => [...videoTriggers, ...textTriggers].forEach((trigger) => trigger.kill())
     })
 
     return () => mm.revert()

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { TextReveal } from './ui/cascade-text'
+import { CONTACT_REVEALED } from './contactRevealEvent'
 import { useTranslation } from '../context/LanguageContext'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -41,7 +42,40 @@ export default function ContactSection({ onContactOpen }: Props) {
       return () => trigger.kill()
     })
 
-    return () => mm.revert()
+    // Text reveal — tagline/headline/CTA sink up into place once the section
+    // is actually reached, instead of already sitting there when it's
+    // uncovered. Plays once. ('workSinkIn' ease is registered at module load
+    // by About/WorkSection, both imported alongside this component.)
+    const items = section.querySelectorAll<HTMLElement>('[data-contact-reveal]')
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let played = false
+    const play = () => {
+      if (played) return
+      played = true
+      gsap.to(items, { y: 0, autoAlpha: 1, duration: 1, stagger: 0.12, ease: 'workSinkIn' })
+    }
+    if (!reduced && items.length) {
+      gsap.set(items, { y: 40, autoAlpha: 0 })
+      // Desktop: the section is fixed and gets uncovered by WORK's pinned
+      // slide — its own position never changes, so no scroll trigger can see
+      // the reveal. WORK's pin announces it instead.
+      window.addEventListener(CONTACT_REVEALED, play)
+      // Mobile: plain in-flow section, a normal viewport trigger works.
+      mm.add('(max-width: 767.9px)', () => {
+        const trigger = ScrollTrigger.create({
+          trigger: section,
+          start: 'top 70%',
+          once: true,
+          onEnter: play,
+        })
+        return () => trigger.kill()
+      })
+    }
+
+    return () => {
+      window.removeEventListener(CONTACT_REVEALED, play)
+      mm.revert()
+    }
   }, [])
 
   // Vilnius's current UTC offset (not the visitor's) — computed rather than
@@ -72,13 +106,15 @@ export default function ContactSection({ onContactOpen }: Props) {
       {/* Tagline, headline and CTA sit together as one cluster instead of
           being pinned to separate edges of the viewport. */}
       <div className="flex h-full flex-col justify-center">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-black">
+        <p data-contact-reveal className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-black">
           {t('contact.tagline')}
         </p>
         <h2 className="text-5xl font-normal leading-[1.05] tracking-tight text-black sm:text-6xl lg:text-7xl">
-          {t('contact.headingLine1')}<br />{t('contact.headingLine2')}
+          <span data-contact-reveal className="block">{t('contact.headingLine1')}</span>
+          <span data-contact-reveal className="block">{t('contact.headingLine2')}</span>
         </h2>
         <button
+          data-contact-reveal
           type="button"
           onClick={onContactOpen}
           className="group mt-8 inline-flex w-fit items-center gap-2 border-b border-black/30 pb-1 text-xs transition-colors hover:border-black"
