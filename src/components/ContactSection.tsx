@@ -110,8 +110,9 @@ export default function ContactSection({ onContactOpen }: Props) {
           {t('contact.tagline')}
         </p>
         <h2 className="text-5xl font-normal leading-[1.05] tracking-tight text-black sm:text-6xl lg:text-7xl">
-          <span data-contact-reveal className="block">{t('contact.headingLine1')}</span>
-          <span data-contact-reveal className="block">{t('contact.headingLine2')}</span>
+          {/* Heading stays static — no reveal animation on these lines. */}
+          <span className="block">{t('contact.headingLine1')}</span>
+          <span className="block">{t('contact.headingLine2')}</span>
         </h2>
         <button
           data-contact-reveal
