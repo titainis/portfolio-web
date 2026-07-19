@@ -28,9 +28,9 @@ function luminanceOf(color: string): number | null {
   return (Number(m[1]) * 299 + Number(m[2]) * 587 + Number(m[3]) * 114) / 1000
 }
 
-// Phones get a permanently visible, white navbar (no scroll-linked reveal or
-// background sampling — see below); tracked once up front so first paint is
-// already correct instead of flashing the desktop behaviour for a frame.
+// Phones get a permanently visible navbar (no scroll-linked reveal); tracked
+// once up front so first paint is already correct instead of flashing the
+// desktop behaviour for a frame.
 // ponytail: read once, not on resize — this site doesn't support rotating a
 // phone into desktop width mid-session, so a resize listener buys nothing.
 function isPhoneViewport() {
@@ -70,15 +70,16 @@ export default function Navbar({ onContactOpen }: Props) {
     }
 
     function update() {
-      // Phone navbar is permanently visible with a fixed white background —
-      // no scroll-linked reveal and no need to sample what's behind it.
-      if (isPhone) return
+      // Phone navbar is permanently visible (no scroll-linked reveal), but it
+      // has no background of its own, so it samples what's behind it just
+      // like desktop does.
+      if (!isPhone) {
+        const spacerH = spacer?.offsetHeight ?? window.innerHeight * 4
+        const progress = Math.min(1, window.scrollY / spacerH)
 
-      const spacerH = spacer?.offsetHeight ?? window.innerHeight * 4
-      const progress = Math.min(1, window.scrollY / spacerH)
-
-      // Show once the train rush starts blurring (~50% through the cinematic).
-      setVisible(progress >= 0.5)
+        // Show once the train rush starts blurring (~50% through the cinematic).
+        setVisible(progress >= 0.5)
+      }
 
       const navRect = navRef.current?.getBoundingClientRect()
       const sampleX = navRect ? navRect.left + navRect.width / 2 : window.innerWidth - 60
@@ -93,7 +94,17 @@ export default function Navbar({ onContactOpen }: Props) {
     window.addEventListener('scroll', update, { passive: true })
     // Run once immediately so the navbar is correct on first paint / page reload.
     update()
-    return () => window.removeEventListener('scroll', update)
+    // The background also changes without scroll events — the preloader
+    // panels slide away, and sections reveal/animate in after scrolling
+    // settles — so scroll sampling alone goes stale on every viewport. A
+    // cheap poll keeps the icon color in sync between scrolls.
+    // ponytail: 500ms interval over a MutationObserver — sampling is a few
+    // getComputedStyle calls, and the observer would need the same debounce.
+    const pollId = window.setInterval(update, 500)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.clearInterval(pollId)
+    }
   }, [])
 
   // Close the expanded menu on outside click or Escape.
@@ -126,9 +137,10 @@ export default function Navbar({ onContactOpen }: Props) {
     lenisStore.scrollTo(pinStart ?? target)
   }
 
-  // Phone: fixed white bar, always black text/icons — no scroll-linked
-  // sampling needed since the background is no longer transparent.
-  const textColor = isPhone ? '#000000' : isLightBg ? '#000000' : 'rgba(255,255,255,0.9)'
+  // Follows the sampled background everywhere; the open phone panel is white,
+  // so the × over it is always black regardless of what the page shows.
+  const lightBehind = isLightBg || (isPhone && open)
+  const textColor = lightBehind ? '#000000' : 'rgba(255,255,255,0.9)'
 
   return (
     <nav
