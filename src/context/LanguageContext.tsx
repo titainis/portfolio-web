@@ -34,10 +34,16 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | null>(null)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>(readInitialLanguage)
+  // ponytail: language is fixed for the page's lifetime — switching persists
+  // the choice and reloads so the site starts fresh in the new language.
+  const [language] = useState<Language>(readInitialLanguage)
+
+  const setLanguage = (lang: Language) => {
+    window.localStorage.setItem(STORAGE_KEY, lang)
+    window.location.reload()
+  }
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, language)
     document.documentElement.lang = language
   }, [language])
 
