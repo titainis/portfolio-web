@@ -14,10 +14,10 @@
     "tagline": "Apgalvotas dizainas. Patikimas kūrimas.",
     "whatWeDo": "Ką galiu pasiūlyti",
     "services": {
-      "webDev": { "title": "Svetainių kūrimas", "body": "Greitos, modernios svetainės, kuriamos konversijoms." },
-      "ecommerce": { "title": "El. parduotuvės", "body": "Parduotuvės, kurios parduoda — optimizuotos pajamoms." },
-      "webApps": { "title": "Žiniatinklio programos", "body": "Paprasti, galingi įrankiai, kuriuos mėgs jūsų komanda." },
-      "aiSolutions": { "title": "DI sprendimai", "body": "DI funkcijos, integruotos tiesiai į jūsų produktą." }
+      "webDev": { "title": "Aukščiausios klasės svetainės", "body": "Apdovanojimų vertos rinkodaros svetainės ambicingiems prekės ženklams." },
+      "ecommerce": { "title": "Interaktyvūs sprendimai", "body": "Sklandžios animacijos, 3D ir įtraukiantis pasakojimas." },
+      "webApps": { "title": "Individualios žiniatinklio programos", "body": "Pritaikytos platformos, kuriamos greičiui ir plėtrai." },
+      "aiSolutions": { "title": "DI integracijos", "body": "Išmanios funkcijos, automatizuojančios ir tobulinančios naudotojų patirtį." }
     }
   },
   "work": {
