@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { TiltCard } from './ui/be-ui-tilt-card'
 import { TextReveal } from './ui/cascade-text'
 import { lenisStore } from '../cinematic/lenisStore'
 import { useTranslation } from '../context/LanguageContext'
@@ -9,12 +8,23 @@ import { useTranslation } from '../context/LanguageContext'
 // which forwards them to the email configured on formspree.io.
 const FORMSPREE_ID = 'mkolewwy'
 
+const EMAIL = 'titasgr0228@gmail.com'
+
 interface ContactModalProps {
   open: boolean
   onClose: () => void
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
+
+// Underline that grows from the left: a hint on hover, full on focus. One
+// absolutely-positioned bar scaled on the X axis — compositor-only, unlike
+// animating border-width or width.
+const fieldWrap = 'group relative border-b border-white/20 pb-2'
+const fieldBar =
+  'pointer-events-none absolute inset-x-0 bottom-[-1px] h-px origin-left scale-x-0 bg-white transition-transform duration-300 ease-out group-hover:scale-x-[0.35] group-focus-within:!scale-x-100'
+const fieldInput =
+  'w-full bg-transparent text-lg text-white placeholder:text-white/45 focus:outline-none'
 
 export default function ContactModal({ open, onClose }: ContactModalProps) {
   const { t } = useTranslation()
@@ -79,13 +89,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.22 }}
-        >
+        <div className="fixed inset-0 z-[200]">
           {/* Backdrop — blur radius is held constant and only opacity
               animates. Animating the blur radius itself forces the browser
               to resample everything behind it on every frame, which reads
@@ -93,145 +97,134 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               an already-blurred layer is compositor-only work and looks just
               as much like the scene "smoothly defocusing". */}
           <motion.div
-            className="absolute inset-0 bg-black/75"
-            style={{ backdropFilter: 'blur(64px)', WebkitBackdropFilter: 'blur(64px)' }}
+            className="absolute inset-0 bg-black/60"
+            style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             onClick={onClose}
           />
 
-          {/* Card — folds down into place like a hinged sheet of paper,
-              instead of just fading/scaling in. Origin at the top edge +
-              perspective on the wrapper are what sell the fold: rotateX
-              alone (no perspective) would just look like a flat squash. */}
-          <motion.div
-            className="relative z-10 w-full max-w-[480px]"
-            style={{ perspective: 1400 }}
+          {/* Panel — slides in from the right edge, full viewport height. */}
+          <motion.aside
+            role="dialog"
+            aria-modal="true"
+            className="absolute inset-y-0 right-0 flex w-full flex-col overflow-y-auto bg-black px-7 py-6 sm:w-[460px] sm:px-10 sm:py-8"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           >
-            <motion.div
-              style={{ transformOrigin: 'top center', transformPerspective: 1400 }}
-              initial={{ opacity: 0, rotateX: -100, y: -24 }}
-              animate={{ opacity: 1, rotateX: 0, y: 0 }}
-              exit={{ opacity: 0, rotateX: -80, y: -12 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            >
-            <TiltCard max={5} className="bg-black border border-white/10 p-8 sm:p-10">
-
-              {/* Close button */}
+            {/* Top bar */}
+            <div className="flex items-center justify-between">
+              <p className="flex items-center gap-2 text-[10px] tracking-[0.28em] text-white/70">
+                <span aria-hidden className="inline-block h-[6px] w-[6px] bg-white/70" />
+                {t('modal.getInTouch')}
+              </p>
               <button
                 onClick={onClose}
                 aria-label={t('modal.close')}
-                className="absolute top-5 right-5 flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                className="flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               >
+                {t('modal.close')}
                 <span aria-hidden className="text-lg leading-none">&times;</span>
               </button>
+            </div>
 
-              {/* Heading */}
-              <div className="mb-8">
-                <p className="mb-2 text-xs tracking-[0.32em] text-white/35">{t('modal.getInTouch')}</p>
-                <h2 className="text-[2.4rem] font-bold leading-[0.95] text-white">
-                  {t('modal.headingLine1')}<br />{t('modal.headingLine2')}
-                </h2>
+            {/* Heading */}
+            <h2 className="mt-12 text-[2.1rem] font-bold leading-[1.05] text-white">
+              {t('modal.headingLine1')} {t('modal.headingLine2')}
+            </h2>
+
+            {/* Success state */}
+            {status === 'success' ? (
+              <div className="mt-10 flex flex-col gap-3">
+                <p className="text-base tracking-wide text-white/90">{t('modal.successMessage')}</p>
+                <button
+                  onClick={onClose}
+                  className="mt-4 w-full border border-white/20 py-3 text-xs font-medium tracking-[0.25em] text-white/60 transition-colors hover:border-white/40 hover:text-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                >
+                  {t('modal.close')}
+                </button>
               </div>
-
-              {/* Success state */}
-              {status === 'success' ? (
-                <div className="flex flex-col gap-3 py-6">
-                  <p className="text-white/90 text-base tracking-wide">
-                    {t('modal.successMessage')}
-                  </p>
-                  <button
-                    onClick={onClose}
-                    className="mt-4 w-full border border-white/20 py-3 text-xs font-medium tracking-[0.25em] text-white/60 transition-colors hover:border-white/40 hover:text-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                  >
-                    {t('modal.close')}
-                  </button>
+            ) : (
+              <form onSubmit={handleSubmit} noValidate className="mt-10 flex flex-col gap-9">
+                <div className={fieldWrap}>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={set('name')}
+                    placeholder={t('modal.nameLabel')}
+                    aria-label={t('modal.nameLabel')}
+                    className={fieldInput}
+                  />
+                  <span className={`${fieldBar} ${errors.name ? '!bg-red-400 scale-x-100' : ''}`} />
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} noValidate className="space-y-4">
-                  {/* NAME */}
-                  <div>
-                    <label className="mb-2 block text-xs tracking-[0.25em] text-white/35">
-                      {t('modal.nameLabel')}
-                    </label>
-                    <input
-                      type="text"
-                      value={form.name}
-                      onChange={set('name')}
-                      placeholder={t('modal.namePlaceholder')}
-                      className={`w-full border bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-white/20 focus:outline-none transition-colors ${errors.name ? 'border-red-400/60 focus:border-red-400/60' : 'border-white/10 focus:border-white/30'}`}
-                    />
-                    {errors.name && (
-                      <p className="mt-1.5 text-xs tracking-wide text-red-400/80">{t('modal.required')}</p>
-                    )}
-                  </div>
 
-                  {/* EMAIL */}
-                  <div>
-                    <label className="mb-2 block text-xs tracking-[0.25em] text-white/35">
-                      {t('modal.emailLabel')}
-                    </label>
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={set('email')}
-                      placeholder={t('modal.emailPlaceholder')}
-                      className={`w-full border bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-white/20 focus:outline-none transition-colors ${errors.email ? 'border-red-400/60 focus:border-red-400/60' : 'border-white/10 focus:border-white/30'}`}
-                    />
-                    {errors.email && (
-                      <p className="mt-1.5 text-xs tracking-wide text-red-400/80">{t('modal.required')}</p>
-                    )}
-                  </div>
+                <div className={fieldWrap}>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={set('email')}
+                    placeholder={t('modal.emailLabel')}
+                    aria-label={t('modal.emailLabel')}
+                    className={fieldInput}
+                  />
+                  <span className={`${fieldBar} ${errors.email ? '!bg-red-400 scale-x-100' : ''}`} />
+                </div>
 
-                  {/* PROJECT DETAILS */}
-                  <div>
-                    <label className="mb-2 block text-xs tracking-[0.25em] text-white/35">
-                      {t('modal.detailsLabel')}
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={form.details}
-                      onChange={set('details')}
-                      placeholder={t('modal.detailsPlaceholder')}
-                      className={`w-full resize-none border bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-white/20 focus:outline-none transition-colors ${errors.details ? 'border-red-400/60 focus:border-red-400/60' : 'border-white/10 focus:border-white/30'}`}
-                    />
-                    {errors.details && (
-                      <p className="mt-1.5 text-xs tracking-wide text-red-400/80">{t('modal.required')}</p>
-                    )}
-                  </div>
+                <div className={fieldWrap}>
+                  <textarea
+                    rows={3}
+                    value={form.details}
+                    onChange={set('details')}
+                    placeholder={t('modal.detailsLabel')}
+                    aria-label={t('modal.detailsLabel')}
+                    className={`${fieldInput} resize-none`}
+                  />
+                  <span className={`${fieldBar} ${errors.details ? '!bg-red-400 scale-x-100' : ''}`} />
+                </div>
 
-                  {status === 'error' && (
-                    <p className="text-xs tracking-wide text-red-400/80">
-                      {t('modal.errorMessage')}
-                    </p>
-                  )}
+                {(status === 'error' || Object.values(errors).some(Boolean)) && (
+                  <p className="-mt-4 text-xs tracking-wide text-red-400/80">
+                    {status === 'error' ? t('modal.errorMessage') : t('modal.required')}
+                  </p>
+                )}
 
-                  {/* CTA — filled white, inverts to black on hover/focus; the
-                      cascade text flip syncs its color with the bg invert so
-                      the label always stays legible. */}
-                  <button
-                    type="submit"
-                    disabled={status === 'loading'}
-                    className={`mt-1 w-full overflow-hidden border border-white bg-white text-xs transition-colors duration-300 hover:bg-black disabled:opacity-50 disabled:hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${status === 'loading' ? 'pointer-events-none' : ''}`}
-                  >
-                    <TextReveal
-                      as="span"
-                      text={status === 'loading' ? t('modal.sending') : t('modal.submit')}
-                      fontSize="inherit"
-                      color="#000000"
-                      hoverColor="#ffffff"
-                      className="!flex !w-full !justify-center"
-                      style={{ padding: '0.875rem 0', letterSpacing: '0.28em' }}
-                    />
-                  </button>
-                </form>
-              )}
-            </TiltCard>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className={`w-fit overflow-hidden text-lg font-bold text-white disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${status === 'loading' ? 'pointer-events-none' : ''}`}
+                >
+                  <TextReveal
+                    as="span"
+                    text={`[ ${status === 'loading' ? t('modal.sending') : t('modal.submit')} ]`}
+                    fontSize="inherit"
+                    color="#ffffff"
+                    hoverColor="#ffffff"
+                    style={{ padding: 0, letterSpacing: 'normal', textTransform: 'none' }}
+                  />
+                </button>
+              </form>
+            )}
+
+            {/* Direct email — pinned to the bottom of the panel. */}
+            <p className="mt-auto flex items-center gap-1 pt-12 text-xs tracking-wide text-white/70">
+              {t('contact.businessEnquiry')}:
+              <a href={`mailto:${EMAIL}`} className="inline-block text-sm text-white">
+                <TextReveal
+                  as="span"
+                  text={EMAIL}
+                  fontSize="inherit"
+                  color="#ffffff"
+                  hoverColor="#ffffff"
+                  style={{ padding: 0, letterSpacing: 'normal', textTransform: 'none' }}
+                />
+              </a>
+            </p>
+          </motion.aside>
+        </div>
       )}
     </AnimatePresence>
   )

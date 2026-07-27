@@ -14,10 +14,10 @@
     "tagline": "Thoughtful design. Reliable development.",
     "whatWeDo": "What We Do",
     "services": {
-      "webDev": { "title": "Web Development", "body": "Fast, modern websites built to convert." },
-      "ecommerce": { "title": "E-Commerce", "body": "Stores that sell, optimised for revenue." },
-      "webApps": { "title": "Web Applications", "body": "Simple, powerful tools your team will use." },
-      "aiSolutions": { "title": "AI Solutions", "body": "AI features woven directly into your product." }
+      "webDev": { "title": "Premium Websites", "body": "Award-worthy marketing websites for ambitious brands." },
+      "ecommerce": { "title": "Interactive Experiences", "body": "Smooth animations, 3D, and immersive storytelling." },
+      "webApps": { "title": "Custom Web Applications", "body": "Tailored platforms built for speed and scale." },
+      "aiSolutions": { "title": "AI Integrations", "body": "Intelligent features that automate and enhance user experiences." }
     }
   },
   "work": {
