@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { TextReveal } from './ui/cascade-text'
-import HamburgerButton from './HamburgerButton'
 import { lenisStore } from '../cinematic/lenisStore'
 import { useTranslation } from '../context/LanguageContext'
 
@@ -107,7 +107,7 @@ export default function Navbar({ onContactOpen }: Props) {
     }
   }, [])
 
-  // Close the expanded menu on outside click or Escape.
+  // Close the panel on outside click or Escape.
   useEffect(() => {
     if (!open) return
     function onPointerDown(e: MouseEvent) {
@@ -124,9 +124,20 @@ export default function Navbar({ onContactOpen }: Props) {
     }
   }, [open])
 
+  // Lock / unlock Lenis scroll while the panel covers the page.
+  useEffect(() => {
+    if (open) lenisStore.stop()
+    else lenisStore.start()
+  }, [open])
+
   function handleClick(target: string | null, pinId: string | null) {
     setOpen(false)
     if (!target) { onContactOpen(); return }
+
+    // The effect that resumes Lenis on `open` becoming false only runs on
+    // the next render — too late for the scrollTo below, which would
+    // silently no-op against a still-stopped instance. Resume it here too.
+    lenisStore.start()
 
     // A pinned section stays `position:fixed` for its entire scrubbed scroll
     // range, so its own bounding rect always reads "already at the top" —
@@ -137,135 +148,114 @@ export default function Navbar({ onContactOpen }: Props) {
     lenisStore.scrollTo(pinStart ?? target)
   }
 
-  // Follows the sampled background everywhere; the open phone panel is white,
-  // so the × over it is always black regardless of what the page shows.
-  const lightBehind = isLightBg || (isPhone && open)
-  const textColor = lightBehind ? '#000000' : 'rgba(255,255,255,0.9)'
+  // Fully opaque — the fused-square icon relies on the four squares landing
+  // exactly edge-to-edge on hover, and any alpha here would turn the tiniest
+  // sub-pixel overlap between them into a visible darker seam.
+  const textColor = isLightBg ? '#000000' : '#ffffff'
 
   return (
     <nav
       ref={navRef}
-      className="fixed top-0 right-0 z-[40] flex items-center gap-3 p-4 sm:gap-5 sm:p-6"
+      className="fixed top-0 right-0 z-[40] flex items-center p-4 sm:p-6"
       style={{
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? 'auto' : 'none',
         transition: 'opacity 0.4s ease',
       }}
     >
-      {/* Phones only: hamburger drops a half-screen panel instead of the
-          leftward-expanding list (that list has no room to grow on a phone
-          width). Placed before the list/icons in the DOM so it paints
-          underneath them and never blocks the close tap. White to match the
-          now-permanent white top bar, with its own language toggle since
-          there's no room for one in the collapsed phone bar. */}
-      <div
-        className="fixed inset-x-0 top-0 z-[35] overflow-hidden bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)] sm:hidden"
-        style={{
-          height: open ? '50vh' : '0px',
-          transition: 'height 0.4s cubic-bezier(0.16,1,0.3,1)',
-          pointerEvents: open ? 'auto' : 'none',
-        }}
-      >
-        <div className="flex h-full flex-col items-center justify-center gap-10">
-          <ul className="flex flex-col items-center gap-7">
-            {navItems.map(({ key, target, pinId }) => (
-              <li key={key}>
-                <a
-                  href={target ?? '#'}
-                  onClick={(e) => { e.preventDefault(); handleClick(target, pinId) }}
-                >
-                  <TextReveal
-                    as="span"
-                    text={t(`nav.${key}`)}
-                    fontSize="inherit"
-                    color="#000000"
-                    hoverColor="#000000"
-                    className="text-2xl !tracking-[0.22em]"
-                  />
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <button
-            type="button"
-            onClick={() => setLanguage(language === 'en' ? 'lt' : 'en')}
-            aria-label={language === 'en' ? 'Switch to Lithuanian' : 'Perjungti į anglų kalbą'}
-            className="cursor-pointer border-t border-black/10 pt-6 text-sm font-bold tracking-[0.2em] text-black"
-          >
-            <span style={{ opacity: language === 'en' ? 1 : 0.35 }}>EN</span>
-            <span className="mx-1 opacity-35">/</span>
-            <span style={{ opacity: language === 'lt' ? 1 : 0.35 }}>LT</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Collapsed to zero width behind the icon; expands leftward (the nav
-          is right-anchored, so growth reads as sliding out to the left)
-          rather than a full-screen overlay. maxWidth is clamped to the
-          viewport (minus this row's own padding) so the longest Lithuanian
-          labels can never overflow past the left edge of the screen and get
-          silently clipped there. Desktop only now — phones use the
-          half-screen panel above instead. */}
-      <ul
-        className="hidden items-center justify-end gap-x-3 gap-y-1 overflow-hidden sm:flex sm:flex-nowrap sm:gap-x-6"
-        style={{
-          // Reserves room for this row's own padding + gaps + the language
-          // toggle + hamburger (~9rem at the mobile scale) so the cap itself
-          // never invites overflow; flex-wrap above is the backstop for
-          // whatever that estimate still doesn't cover (e.g. the longest
-          // Lithuanian labels on the very smallest phones).
-          maxWidth: open ? 'min(480px, calc(100vw - 9rem))' : '0px',
-          opacity: open ? 1 : 0,
-          transition:
-            'max-width 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease',
-        }}
-      >
-        {navItems.map(({ key, target, pinId }) => (
-          <li key={key} className="whitespace-nowrap text-sm sm:text-xl">
-            <a
-              href={target ?? '#'}
-              onClick={(e) => { e.preventDefault(); handleClick(target, pinId) }}
-            >
-              <TextReveal
-                as="span"
-                text={t(`nav.${key}`)}
-                fontSize="inherit"
-                color={textColor}
-                hoverColor={textColor}
-                style={{ padding: 0 }}
-                className="!tracking-[0.12em] sm:!tracking-[0.22em]"
-              />
-            </a>
-          </li>
-        ))}
-      </ul>
-
-      {/* Language toggle — desktop only; phones get one inside the dropdown
-          panel above instead, where there's actually room for it. Active
-          language stays full opacity, the other dims. */}
+      {/* Trigger — four squares that fuse into one solid block on hover,
+          replacing the old hamburger/× morph. The panel below has its own
+          Close control, so this button only ever opens. */}
       <button
         type="button"
-        onClick={() => setLanguage(language === 'en' ? 'lt' : 'en')}
-        aria-label={language === 'en' ? 'Switch to Lithuanian' : 'Perjungti į anglų kalbą'}
-        className="hidden shrink-0 cursor-pointer text-sm font-bold tracking-[0.15em] sm:block"
+        onClick={() => setOpen(true)}
+        aria-label={t('nav.openMenu')}
+        className="group flex shrink-0 cursor-pointer items-center"
         style={{ color: textColor }}
       >
-        <span style={{ opacity: language === 'en' ? 1 : 0.4 }}>EN</span>
-        <span style={{ opacity: 0.4 }}>/</span>
-        <span style={{ opacity: language === 'lt' ? 1 : 0.4 }}>LT</span>
+        <span className="relative block h-6 w-6 shrink-0">
+          <span className="absolute left-0 top-0 h-[10px] w-[10px] bg-current transition-transform duration-300 ease-out group-hover:translate-x-[2px] group-hover:translate-y-[2px]" />
+          <span className="absolute right-0 top-0 h-[10px] w-[10px] bg-current transition-transform duration-300 ease-out group-hover:-translate-x-[2px] group-hover:translate-y-[2px]" />
+          <span className="absolute bottom-0 left-0 h-[10px] w-[10px] bg-current transition-transform duration-300 ease-out group-hover:translate-x-[2px] group-hover:-translate-y-[2px]" />
+          <span className="absolute bottom-0 right-0 h-[10px] w-[10px] bg-current transition-transform duration-300 ease-out group-hover:-translate-x-[2px] group-hover:-translate-y-[2px]" />
+        </span>
       </button>
 
-      {/* Hamburger, morphs into an × while the menu is open. */}
-      <span style={{ color: textColor }}>
-        <HamburgerButton
-          isOpen={open}
-          onClick={() => setOpen((o) => !o)}
-          className="relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center"
-          openLabel={t('nav.openMenu')}
-          closeLabel={t('nav.closeMenu')}
-        />
-      </span>
+      {/* Panel — full-height, slides in from the right over the whole page.
+          Mirrors ContactModal's slide-in mechanics for a consistent feel. */}
+      <AnimatePresence>
+        {open && (
+          <div className="fixed inset-0 z-[45]">
+            <motion.div
+              className="absolute inset-0 bg-black/60"
+              style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              onClick={() => setOpen(false)}
+            />
+
+            <motion.aside
+              role="dialog"
+              aria-modal="true"
+              className="absolute inset-y-0 right-0 flex w-full flex-col overflow-y-auto bg-black px-7 py-6 sm:w-[460px] sm:px-10 sm:py-8"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2 text-[10px] tracking-[0.28em] text-white/70">
+                  <span aria-hidden className="inline-block h-[6px] w-[6px] bg-white/70" />
+                  {t('nav.menu').toUpperCase()}
+                </p>
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label={t('nav.closeMenu')}
+                  className="flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                >
+                  {t('modal.close')}
+                  <span aria-hidden className="text-lg leading-none">&times;</span>
+                </button>
+              </div>
+
+              <ul className="mt-16 flex flex-col">
+                {navItems.map(({ key, target, pinId }) => (
+                  <li key={key} className="border-b border-white/15 first:border-t">
+                    <a
+                      href={target ?? '#'}
+                      onClick={(e) => { e.preventDefault(); handleClick(target, pinId) }}
+                      className="block py-6"
+                    >
+                      <TextReveal
+                        as="span"
+                        text={t(`nav.${key}`)}
+                        fontSize="inherit"
+                        color="#ffffff"
+                        hoverColor="#ffffff"
+                        className="!text-4xl sm:!text-5xl"
+                        style={{ padding: 0, letterSpacing: 'normal' }}
+                      />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                type="button"
+                onClick={() => setLanguage(language === 'en' ? 'lt' : 'en')}
+                aria-label={language === 'en' ? 'Switch to Lithuanian' : 'Perjungti į anglų kalbą'}
+                className="mt-auto w-fit cursor-pointer border-t border-white/15 pt-6 text-sm font-bold tracking-[0.2em] text-white"
+              >
+                <span style={{ opacity: language === 'en' ? 1 : 0.4 }}>EN</span>
+                <span className="mx-1 opacity-40">/</span>
+                <span style={{ opacity: language === 'lt' ? 1 : 0.4 }}>LT</span>
+              </button>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
     </nav>
   )
 }

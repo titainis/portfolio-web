@@ -181,7 +181,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                     onChange={set('details')}
                     placeholder={t('modal.detailsLabel')}
                     aria-label={t('modal.detailsLabel')}
-                    className={`${fieldInput} resize-none`}
+                    className={`${fieldInput} resize-none no-scrollbar`}
                   />
                   <span className={`${fieldBar} ${errors.details ? '!bg-red-400 scale-x-100' : ''}`} />
                 </div>
@@ -211,15 +211,21 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
             {/* Direct email — pinned to the bottom of the panel. */}
             <p className="mt-auto flex items-center gap-1 pt-12 text-xs tracking-wide text-white/70">
-              {t('contact.businessEnquiry')}:
-              <a href={`mailto:${EMAIL}`} className="inline-block text-sm text-white">
+              <span>{t('contact.businessEnquiry')}:</span>
+              <a href={`mailto:${EMAIL}`} className="inline-flex items-center text-sm text-white">
                 <TextReveal
                   as="span"
                   text={EMAIL}
                   fontSize="inherit"
                   color="#ffffff"
                   hoverColor="#ffffff"
-                  style={{ padding: 0, letterSpacing: 'normal', textTransform: 'none' }}
+                  style={{
+                    padding: 0,
+                    letterSpacing: 'normal',
+                    textTransform: 'none',
+                    fontWeight: 400,
+                    textDecoration: 'underline',
+                  }}
                 />
               </a>
             </p>

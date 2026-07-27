@@ -3,6 +3,7 @@
     "about": "ABOUT",
     "work": "WORK",
     "contact": "CONTACT",
+    "menu": "Menu",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
@@ -17,7 +18,11 @@
       "webDev": { "title": "Premium Websites", "body": "Award-worthy marketing websites for ambitious brands." },
       "ecommerce": { "title": "Interactive Experiences", "body": "Smooth animations, 3D, and immersive storytelling." },
       "webApps": { "title": "Custom Web Applications", "body": "Tailored platforms built for speed and scale." },
-      "aiSolutions": { "title": "AI Integrations", "body": "Intelligent features that automate and enhance user experiences." }
+      "aiSolutions": { "title": "AI Integrations", "body": "Intelligent features that automate and enhance user experiences." },
+      "performance": { "title": "Performance Optimisation", "body": "Lightning-fast websites with excellent Core Web Vitals and SEO foundations." },
+      "maintenance": { "title": "Maintenance & Support", "body": "Continuous updates, monitoring, and improvements after launch." },
+      "consulting": { "title": "Consulting", "body": "Technical guidance on architecture, technology choices, and digital strategy." },
+      "motion": { "title": "Motion & Animation", "body": "Smooth GSAP-powered animations that bring interfaces to life." }
     }
   },
   "work": {
