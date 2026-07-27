@@ -34,6 +34,12 @@ const TextReveal = React.memo(function TextReveal({
   onClick,
 }: TextRevealProps) {
   const [hovered, setHovered] = useState(false);
+  // Letters flip up on every hover. On leave they snap back instantly
+  // (transition disabled) instead of animating down — since the "clone"
+  // revealed by the flip is the same glyph, the snap is invisible, and the
+  // next hover replays the up animation from a clean state.
+  const [revealed, setRevealed] = useState(false);
+  const [instant, setInstant] = useState(false);
 
   const chars = useMemo(() => {
     if (typeof Intl !== "undefined" && Intl.Segmenter) {
@@ -61,8 +67,8 @@ const TextReveal = React.memo(function TextReveal({
       lineHeight: 1,
       ...style,
     },
-    onMouseEnter: () => setHovered(true),
-    onMouseLeave: () => setHovered(false),
+    onMouseEnter: () => { setHovered(true); setInstant(false); setRevealed(true); },
+    onMouseLeave: () => { setHovered(false); setInstant(true); setRevealed(false); },
     onClick,
     "aria-label": text,
   };
@@ -86,9 +92,9 @@ const TextReveal = React.memo(function TextReveal({
             className="inline-block relative will-change-transform"
             style={{
               textShadow: `0 ${sign * flip}em currentColor`,
-              transition: `transform ${duration}ms ${easing}`,
-              transitionDelay: `${i * staggerDelay}ms`,
-              transform: hovered
+              transition: instant ? "none" : `transform ${duration}ms ${easing}`,
+              transitionDelay: instant ? "0ms" : `${i * staggerDelay}ms`,
+              transform: revealed
                 ? `translateY(${-sign * flip}em)`
                 : "translateY(0)",
             }}

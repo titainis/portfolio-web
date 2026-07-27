@@ -34,7 +34,17 @@ export function useLenis() {
     gsap.ticker.add(raf)
     gsap.ticker.lagSmoothing(0)
 
+    // Lenis caches document height at construction time and never
+    // re-measures it on its own — ResizeObserver doesn't fire for
+    // document.documentElement's scrollable-overflow growth, so as the
+    // cinematic content mounts, Lenis's scroll limit stays stuck near the
+    // initial (near-empty) page height. ScrollTrigger.refresh() already runs
+    // whenever content/images settle, so resync Lenis's measurement there.
+    const onRefresh = () => lenis.resize()
+    ScrollTrigger.addEventListener('refresh', onRefresh)
+
     return () => {
+      ScrollTrigger.removeEventListener('refresh', onRefresh)
       gsap.ticker.remove(raf)
       lenis.destroy()
       lenisRef.current = null

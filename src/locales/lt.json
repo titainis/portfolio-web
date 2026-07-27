@@ -3,6 +3,7 @@
     "about": "APIE",
     "work": "DARBAI",
     "contact": "SUSISIEKITE",
+    "menu": "Meniu",
     "openMenu": "Atidaryti meniu",
     "closeMenu": "Uždaryti meniu"
   },
@@ -17,7 +18,11 @@
       "webDev": { "title": "Aukščiausios klasės svetainės", "body": "Apdovanojimų vertos rinkodaros svetainės ambicingiems prekės ženklams." },
       "ecommerce": { "title": "Interaktyvūs sprendimai", "body": "Sklandžios animacijos, 3D ir įtraukiantis pasakojimas." },
       "webApps": { "title": "Individualios žiniatinklio programos", "body": "Pritaikytos platformos, kuriamos greičiui ir plėtrai." },
-      "aiSolutions": { "title": "DI integracijos", "body": "Išmanios funkcijos, automatizuojančios ir tobulinančios naudotojų patirtį." }
+      "aiSolutions": { "title": "DI integracijos", "body": "Išmanios funkcijos, automatizuojančios ir tobulinančios naudotojų patirtį." },
+      "performance": { "title": "Našumo optimizavimas", "body": "Žaibiško greičio svetainės su puikiais Core Web Vitals rodikliais ir SEO pagrindais." },
+      "maintenance": { "title": "Priežiūra ir palaikymas", "body": "Nuolatiniai atnaujinimai, stebėsena ir tobulinimai po paleidimo." },
+      "consulting": { "title": "Konsultacijos", "body": "Techninės konsultacijos architektūros, technologijų pasirinkimo ir skaitmeninės strategijos klausimais." },
+      "motion": { "title": "Judesio dizainas ir animacijos", "body": "Sklandžios GSAP animacijos, atgaivinančios sąsajas." }
     }
   },
   "work": {

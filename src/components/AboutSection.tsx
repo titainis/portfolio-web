@@ -7,7 +7,10 @@ import { useTranslation } from '../context/LanguageContext'
 gsap.registerPlugin(ScrollTrigger, CustomEase)
 CustomEase.create('workSinkIn', '0.16, 1, 0.3, 1')
 
-const serviceKeys = ['webDev', 'ecommerce', 'webApps', 'aiSolutions'] as const
+const serviceKeys = [
+  'webDev', 'ecommerce', 'webApps', 'aiSolutions',
+  'performance', 'maintenance','motion', 'consulting',
+] as const
 
 export default function AboutSection() {
   const [hovered, setHovered] = useState<number | null>(null)
@@ -47,7 +50,7 @@ export default function AboutSection() {
 
   return (
     <section id="about" className="relative z-30 w-full overflow-hidden bg-white">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-24 px-6 py-32 sm:px-10 md:gap-40 md:px-20 md:py-64">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-28 px-6 py-32 sm:px-10 md:gap-40 md:px-20 md:py-64">
 
         {/* ── INTRO ─────────────────────────────────────────────────────── */}
         <div ref={introRef} className="max-w-xl text-[23.12px] font-light [&_*]:leading-[3rem] text-black md:text-2xl">
@@ -70,11 +73,11 @@ export default function AboutSection() {
               a phone's width left nothing for longer (esp. Lithuanian)
               service titles. */}
           <div className="relative z-10 px-6 sm:px-10 md:pl-[32vw] md:pr-[12vw]">
-            <span className="text-2xl font-extrabold tracking-[0.20em]">
+            <span className="text-xl font-extrabold tracking-[0.20em]">
               {t('about.whatWeDo')}
             </span>
 
-            <ul className="mt-20 flex flex-col items-start gap-8 md:gap-10">
+            <ul className="mt-16 flex flex-col items-start gap-3 md:gap-6">
               {services.map((s, i) => {
                 const isHovered = hovered === i
                 return (
@@ -82,7 +85,7 @@ export default function AboutSection() {
                     key={s.n}
                     onMouseEnter={() => setHovered(i)}
                     onMouseLeave={() => setHovered(null)}
-                    className="relative flex cursor-default items-center gap-3 py-2"
+                    className="relative flex cursor-default items-center gap-3 py-1"
                   >
 
                     {/* Full-bleed hit area — the hover reveal should trigger
@@ -102,15 +105,19 @@ export default function AboutSection() {
                       {s.body}
                     </span>
 
-                    {/* TITLE CONTAINER — invisible ghost holds width when title fades out */}
-                    <span className="relative inline-block">
+                    {/* TITLE CONTAINER — invisible ghost holds width when title fades out.
+                        Fixed width (long enough for the longest title, EN or LT) instead of
+                        sizing to each title's own text — otherwise the BIG TITLE below, which
+                        sits at left-full of this box, starts further right for longer titles
+                        and the reveal never lines up row to row. */}
+                    <span className="relative inline-block md:w-[42rem]">
                       <span className="invisible text-2xl md:whitespace-nowrap md:text-3xl" aria-hidden="true">
                         {s.title}
                       </span>
 
                       {/* ORIGINAL TITLE — fades OUT in place */}
                       <span
-                        className="absolute inset-0 text-2xl text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:whitespace-nowrap md:text-2xl"
+                        className="absolute inset-0 text-xl text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:whitespace-nowrap md:text-xl"
                         style={{
                           fontWeight: 400,
                           opacity: isHovered ? 0 : 1,
@@ -123,10 +130,10 @@ export default function AboutSection() {
                     {/* BIG TITLE — slides in from the RIGHT on hover */}
                     <span
                       aria-hidden="true"
-                      className="pointer-events-none absolute left-full top-1/2 ml-6 hidden whitespace-nowrap text-[9vw] font-semibold leading-none text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:ml-10 md:block"
+                      className="pointer-events-none absolute left-64 top-1/2 ml-6 hidden whitespace-nowrap text-[3.5vw] font-semibold leading-none text-black transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:block"
                       style={{
                         opacity: isHovered ? 1 : 0,
-                        transform: `translateY(-50%) translateX(${isHovered ? '0px' : '60px'})`,
+                        transform: `translateY(-50%) translateX(${isHovered ? '0px' : '120px'})`,
                       }}
                     >
                       {s.title}
