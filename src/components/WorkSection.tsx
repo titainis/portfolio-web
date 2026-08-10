@@ -60,7 +60,7 @@ interface Project {
 const projectKeys = ['moviePage', 'karateClub', 'folidify'] as const
 const projectMeta: Record<(typeof projectKeys)[number], { url?: string; video: string }> = {
   moviePage: { url: 'https://titainis.github.io/movie-page/', video: '/work/movie-page-recording.mp4' },
-  karateClub: { url: 'https://karate-klubas-alfa.lovable.app', video: '/work/karate-club-recording.mp4' },
+  karateClub: { url: 'https://karateklubasalfa.lt', video: '/work/karate-club-recording.mp4' },
   folidify: { url: 'https://folidify.com', video: '/work/folidify-recording.mp4' },
 }
 
